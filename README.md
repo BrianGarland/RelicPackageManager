@@ -19,6 +19,8 @@ The current way of installing
 2. `CRTSQLRPGI OBJ(#RELIC/RELIC) SRCFILE(#RELIC/QRPGLESRC) SRCMBR(RELIC) COMMIT(*NONE) OPTION(*EVENTF) RPGPPOPT(*LVL2) REPLACE(*YES) DBGVIEW(*SOURCE)` to compile.
 3. Should hopefully be installed. 
 
+**[You can find a video guide to install Relic here](https://www.youtube.com/watch?v=1mK3JG4690Q&feature=youtu.be)**
+
 **OR**
 
 1. Do a `git clone https://github.com/Club-Seiden/RelicPackageManager.git /home/[USER]/Relic/` where `[USER]` is your user profile name (you also have to create the Relic directory). 
@@ -28,6 +30,8 @@ The current way of installing
 
 1. Find a GitHub repo you want to install onto your system, for example [FFEDIT](https://github.com/RelicPackages/FFEDIT).
 2. There are three paramters to the RELIC program. The organisation or user the repo is in, the repo name and what library to use/install into. Run `CALl RELIC PARM('RelicPackages' 'FFEDIT' 'SOMELIB')` for FFEDIT to be installed into SOMELIB.
+
+**[You can find a video guide to install Packages here](https://www.youtube.com/watch?v=uQFq-hbO-Y0&feature=youtu.be)**
 
 #### How to create a build file.
 
