@@ -15,14 +15,14 @@ Currently, it **only supports GitHub**. This is because my hosted system doesn't
 
 The current way of installing
 
-1. You'll need to get the source from this repo into a source member or IFS file - FTP / Copy+Paste via Rational Developer for i. I've been using `FFPKGMGR` as my development library, but the choice is your.
-2. `CRTSQLRPGI OBJ(FFPKGMGR/RELIC) SRCFILE(FFPKGMGR/QRPGLESRC) SRCMBR(RELIC) COMMIT(*NONE) OPTION(*EVENTF) RPGPPOPT(*LVL2) REPLACE(*YES) DBGVIEW(*SOURCE)` to compile.
+1. You'll need to get the source from this repo into a source member or IFS file - FTP / Copy+Paste via Rational Developer for i. I've been using `#RELIC` as my development library, but the choice is your.
+2. `CRTSQLRPGI OBJ(#RELIC/RELIC) SRCFILE(#RELIC/QRPGLESRC) SRCMBR(RELIC) COMMIT(*NONE) OPTION(*EVENTF) RPGPPOPT(*LVL2) REPLACE(*YES) DBGVIEW(*SOURCE)` to compile.
 3. Should hopefully be installed. 
 
 **OR**
 
 1. Do a `git clone https://github.com/Club-Seiden/RelicPackageManager.git /home/[USER]/Relic/` where `[USER]` is your user profile name (you also have to create the Relic directory). 
-2. Compile RELIC.RPGLE from the IFS (I use FFPKGMGR as the library, you can use any) using `CRTSQLRPGI` with `COMMIT(*NONE)`.
+2. Compile RELIC.RPGLE from the IFS (I use #RELIC as the library, you can use any) using `CRTSQLRPGI` with `COMMIT(*NONE)`.
 
 #### How to use
 
