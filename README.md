@@ -36,8 +36,9 @@ If you're getting `error: SSL certificate problem: unable to get local issuer ce
 
 ### How to use
 
-1. Find a GitHub repo you want to install onto your system, for example [FFEDIT](https://github.com/RelicPackages/FFEDIT).
-2. There are three paramters to the RELIC program. The link to a ZIP of the repository, a subfolder within the ZIP (otherwise, leave blank) and what library to use/install into. 
+1. Find a repo you want to install onto your system, for example [FFEDIT](https://github.com/RelicPackages/FFEDIT).
+2. You'll need the ZIP to this repo. On GitHub, you can click 'Clone or download', then proceed to right click on 'Download ZIP' - you'll need to copy the direct link to this ZIP file.
+3. There are three paramters to the RELIC program. The link to a ZIP of the repository (copied previously), the subfolder within the ZIP (If the repo root is within a folder; otherwise, leave blank) and what library to use/install into. 
 
 Examples
 ```
