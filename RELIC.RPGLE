@@ -32,7 +32,7 @@
          *n pointer value;  //Misc pointer
        end-pr;
 
-       dcl-s PathFile char(50) ;
+       dcl-s PathFile char(128) ;
        dcl-s OpenMode char(5) ;
        dcl-s FilePtr pointer inz ;
        dcl-s RtvData char(256) ;
@@ -56,7 +56,7 @@
 
        Dcl-Pi RELIC;
          pZIPLoc Char(128) Const;
-         pNewDir Char(20)  Const;
+         pNewDir Char(27)  Const;
          pLib    Char(10)  Const;
        END-PI;
 
@@ -79,8 +79,8 @@
            Print('Built from ' + %Trim(pZIPLoc) + ' sucessfully.');
            BUILD_Command('RMDIR DIR(''' + IFSLINK + ''') SUBTREE(*ALL)');
          Else;
-           Print('Failed to build from ' + %Trim(pZIPLoc)
-               + ', error count: ' + %Char(gFails));
+           Print('Attempted to build ' + %Trim(pZIPLoc) + '.');
+           Print(' > error count: ' + %Char(gFails));
          ENDIF;
        Endif;
 
@@ -91,7 +91,7 @@
 
        Dcl-Proc Print;
          Dcl-Pi Print;
-           pValue Char(80) Const;
+           pValue Char(128) Const;
          END-PI;
 
          printf(%Trim(pValue) + x'25');
