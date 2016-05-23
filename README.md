@@ -1,5 +1,5 @@
 # Relic Package Manager
-This project allows you to download and install programs onto your IBM i system from GitHub (soon to be any Git repo)
+This project allows you to download and install programs onto your IBM i system from a ZIP file. You can find a [list of available packages here](https://github.com/Club-Seiden/RelicPackageManager/blob/master/Packages.md).
 
 Basic Package Manager for IBM i, tested on:
 
