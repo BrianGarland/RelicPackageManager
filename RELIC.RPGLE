@@ -39,17 +39,15 @@
 
        //*********************************************
 
+       Dcl-C gRepoZip  'REPO.ZIP';
        Dcl-S gUser     Char(10)     Inz(*User);
 
-       Dcl-S REPOLINK  Varchar(128); //Ending with /
        Dcl-S IFSLINK   Varchar(128); //Ending with /
        Dcl-s INTOLIB   Char(10);
 
        Dcl-S gMode  Char(10);
        Dcl-S gIndex Int(5);
 
-       Dcl-S gFiles Char(60)  Dim(50);
-       Dcl-S gDirs  Char(20)  Dim(15);
        Dcl-S gCmds  Char(200) Dim(100);
 
        Dcl-S gFails Int(3);
@@ -57,39 +55,31 @@
        //*********************************************
 
        Dcl-Pi RELIC;
-         pGHUser Char(20) Const;
-         pGHRepo Char(20) Const;
-         pLib    Char(10) Const;
+         pZIPLoc Char(128) Const;
+         pNewDir Char(20)  Const;
+         pLib    Char(10)  Const;
        END-PI;
 
-       If (%Parms < 3 OR %Parms > 4);
+       If (%Parms < 3 OR %Parms > 3);
          Print('Three parameters required.');
          Return;
        ENDIF;
 
        //*********************************************
 
-       REPOLINK = 'https://raw.githubusercontent.com'
-                + '/' + %Trim(pGHUser)
-                + '/' + %Trim(pGHRepo)
-                + '/master/';
-
        INTOLIB  = pLib;
-       IFSLINK  = '/home/' + %Trim(gUser)
-                + '/' + %Trim(pGHRepo) + '/';
+       IFSLINK  = '/home/' + %Trim(gUser) + '/';
 
        gFails   = 0;
 
-       IFS_CreateDir(IFSLINK);
-
-       If (BUILD_Download());
+       If (BUILD_Prepare());
          BUILD_Process();
 
          If (gFails = 0);
-           Print('Built ' + %Trim(pGHRepo) + ' sucessfully.');
-           Cmd('RMDIR DIR(''' + IFSLINK + ''') SUBTREE(*ALL)');
+           Print('Built from ' + %Trim(pZIPLoc) + ' sucessfully.');
+           BUILD_Command('RMDIR DIR(''' + IFSLINK + ''') SUBTREE(*ALL)');
          Else;
-           Print('Failed to build ' + %Trim(pGHRepo)
+           Print('Failed to build from ' + %Trim(pZIPLoc)
                + ', error count: ' + %Char(gFails));
          ENDIF;
        Endif;
@@ -109,53 +99,42 @@
 
        //*********************************************
 
-       Dcl-Proc IFS_CreateDir;
-         Dcl-Pi *N;
-           pDir Varchar(128) Const;
-         END-PI;
-
-         If (Cmd('MKDIR DIR(''' + %Trim(pDir) + ''')') = 1);
-           Print('Failed to make directory "' + %Trim(pDir) + '".');
-         Endif;
-       End-Proc;
-
-       //*********************************************
-
        Dcl-Proc FILE_Download;
          Dcl-Pi *N;
-           pFile Varchar(60) Const; //name.ext
+           pLocation Varchar(128) Const; //File
          END-PI;
 
-         Dcl-S lLoc  Varchar(128);
          Dcl-S lFile SQLTYPE(BLOB_FILE);
 
-         lLoc = REPOLINK + pFile;
-         lFile_Name = IFSLINK + pFile;
+         //Will download to Current Directory
+         lFile_Name = IFSLINK + gRepoZip;
          lFile_NL   = %Len(%TrimR(lFile_Name));
          lFile_FO   = SQFOVR;
 
          Exec SQL
-           SELECT SYSTOOLS.HTTPGETBLOB(:lLoc, '') lFile_DATA
+           SELECT SYSTOOLS.HTTPGETBLOB(:pLocation, '') lFile_DATA
            INTO :lFile
            FROM SYSIBM.SYSDUMMY1;
-
-         //00819
-
-         If (Cmd('CHGATR '
-             + 'OBJ(''' +  %Trim(lFile_Name) + ''') '
-             + 'ATR(*CCSID) VALUE(00819)') = 1);
-
-             Print('Failed to change CCSID of "' + %Trim(pFile) + '".');
-         ENDIf;
 
        END-PROC;
 
        //*********************************************
 
-       Dcl-Proc BUILD_Download;
+       Dcl-Proc BUILD_Prepare;
          Dcl-Pi *N Ind End-Pi;
 
-         FILE_Download('build.txt');
+         FILE_Download(%Trim(pZIPLoc)); //Download ZIP
+
+         //Extract the ZIP file
+         BUILD_Command('QSH CMD(''jar xf ' + IFSLINK + gRepoZip + ''')');
+         BUILD_Command('RMVLNK OBJLNK(''' + IFSLINK + gRepoZip + ''')');
+
+         //Use the new folder incase it extracts into a folder
+         If (pNewDir <> *Blank);
+           IFSLINK += %Trim(pNewDir) + '/';
+         ENDIF;
+
+         //Process the build file
          PathFile = IFSLINK + 'build.txt' + x'00';
          OpenMode = 'r' + x'00';
          FilePtr  = OpenFile(%addr(PathFile):%addr(OpenMode));
@@ -165,7 +144,7 @@
            Return *Off;
          EndIf;
 
-         dow  (ReadFile(%addr(RtvData):32767:FilePtr) <> *null) ;
+         dow  (ReadFile(%addr(RtvData):%Len(RtvData):FilePtr) <> *null) ;
            RtvData = %xlate(x'00':' ':RtvData) ;  //End of record null
            RtvData = %xlate(x'25':' ':RtvData) ;  //Line feed (LF)
            RtvData = %xlate(x'0D':' ':RtvData) ;  //Carriage return (CR)
@@ -179,11 +158,11 @@
            Select;
 
              When (RtvData = 'dirs:');
-               gMode  = '*DIRS';
+               Print('Directories directive not supported in build file.');
                gIndex = 1;
 
              When (RtvData = 'files:');
-               gMode  = '*FILES';
+               Print('Files directive not supported in build file.');
                gIndex = 1;
 
              When (RtvData = 'build:');
@@ -192,15 +171,6 @@
 
              Other;
                Select;
-
-                 When (gMode = '*DIRS');
-                   gDirs(gIndex) = RtvData;
-                   Print('Directory found: ' + RtvData);
-
-                 When (gMode = '*FILES');
-                   gFiles(gIndex) = RtvData;
-                   Print('File found: ' + RtvData);
-
                  When (gMode = '*BUILD');
                    gCmds(gIndex) = RtvData;
 
@@ -245,14 +215,6 @@
        Dcl-Proc BUILD_Process;
 
          Dcl-S lIndex Int(5) Inz(1);
-
-         For lIndex = 1 to %Lookup(*Blank:gDirs)-1;
-           IFS_CreateDir(IFSLINK + gDirs(lIndex));
-         ENDFOR;
-
-         For lIndex = 1 to %Lookup(*Blank:gFiles)-1;
-           FILE_Download(gFiles(lIndex));
-         ENDFOR;
 
          For lIndex = 1 to %Lookup(*Blank:gCmds)-1;
            BUILD_Command(gCmds(lIndex));
