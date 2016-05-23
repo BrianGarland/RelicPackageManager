@@ -11,6 +11,8 @@ Currently, it **only supports GitHub**. This is because my hosted system doesn't
 
 **If you want to get your RPG project on GitHub** then please let me know on [Gitter](https://gitter.im/WorksOfBarry) or by [emailing me](mailto:mrliamallan@live.co.uk) as I am more than willing to help. :-)
 
+You can follow [development here](https://trello.com/b/BEOD7bA7/relic-package-manager).
+
 ### How to install
 
 The current way of installing
