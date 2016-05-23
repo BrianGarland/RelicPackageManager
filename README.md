@@ -28,7 +28,7 @@ The current way of installing
 
 1. Do a `git clone https://github.com/Club-Seiden/RelicPackageManager.git /home/[USER]/Relic/` where `[USER]` is your user profile name (you also have to create the Relic directory). 
 2. Compile RELIC.RPGLE from the IFS (I use #RELIC as the library, you can use any) using `CRTSQLRPGI` with `COMMIT(*NONE)`.
-3. You'll need to copy RELICGET.CMD as well, and use it with `CRTCMD` over the RELIC *PGM you created.
+3. You'll need to compile RELICGET.CMD as well, and use it with `CRTCMD` over the RELIC *PGM you created. You will need to make an SPF to create the command, but make sure you create the RELIC *PGM first.
 
 If you're getting `error: SSL certificate problem: unable to get local issuer certificate while accessing`.. while attemping to clone, put `GIT_SSL_NO_VERIFY=true` infront of `git clone` and it should clone successfully.
 
