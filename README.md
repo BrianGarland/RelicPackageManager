@@ -22,7 +22,7 @@ The current way of installing
 3. **You will** also need a command over the RELIC program. `RELICGET.CMD` exists within this repo, you should be able to copy the source from that and create it using `CRTCMD`.
 3. Should hopefully be installed. 
 
-**[You can find a video guide to install Relic here](https://www.youtube.com/watch?v=1mK3JG4690Q&feature=youtu.be)**
+**[You can find a video guide to install Relic with RDi here](https://www.youtube.com/watch?v=6v5SSx7sHOA&feature=youtu.be)**
 
 **OR**
 
@@ -31,6 +31,8 @@ The current way of installing
 3. You'll need to copy RELICGET.CMD as well, and use it with `CRTCMD` over the RELIC *PGM you created.
 
 If you're getting `error: SSL certificate problem: unable to get local issuer certificate while accessing`.. while attemping to clone, put `GIT_SSL_NO_VERIFY=true` infront of `git clone` and it should clone successfully.
+
+**[You can find a video guide to install Relic with Git here](https://www.youtube.com/watch?v=bVNusxDSmWY&feature=youtu.be)**
 
 ### How to use
 
