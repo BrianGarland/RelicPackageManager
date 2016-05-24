@@ -1,5 +1,8 @@
 # Relic Package Manager
-This project allows you to download and install programs onto your IBM i system from a ZIP file. You can find a [list of available packages here](https://github.com/Club-Seiden/RelicPackageManager/blob/master/Packages.md).
+This project allows you to download and install programs onto your IBM i system from a ZIP file. 
+
+* You can find [latest releases here](https://github.com/Club-Seiden/RelicPackageManager/releases).
+* You can find a [list of available packages here](https://github.com/Club-Seiden/RelicPackageManager/blob/master/Packages.md).
 
 Basic Package Manager for IBM i, tested on:
 
@@ -7,11 +10,7 @@ Basic Package Manager for IBM i, tested on:
 + 7.2
 + 7.3
 
-Currently, it **only supports GitHub**. This is because my hosted system doesn't have a version of Git, once my request has gone through to get it installed, you'll be able to use any Git repo.
-
-**If you want to get your RPG project on GitHub** then please let me know on [Gitter](https://gitter.im/WorksOfBarry) or by [emailing me](mailto:mrliamallan@live.co.uk) as I am more than willing to help. :-)
-
-You can follow [development here](https://trello.com/b/BEOD7bA7/relic-package-manager).
+**If you want to get your RPG project on GitHub, BitBucket or somewhere more private** then please let me know on [Gitter](https://gitter.im/WorksOfBarry) or by [emailing me](mailto:mrliamallan@live.co.uk) as I am more than willing to help. :-)
 
 ### How to install
 
