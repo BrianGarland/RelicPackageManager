@@ -42,8 +42,8 @@ If you're getting `error: SSL certificate problem: unable to get local issuer ce
 
 Examples
 ```
-CALL RELIC PARM('https://github.com/Club-Seiden/TOP/archive/master.zip' 'TOP-master' 'SOMELIB')
-CALL RELIC PARM('https://github.com/RelicPackages/RPGMAIL/archive/master.zip' 'RPGMAIL-master' 'RPGMAIL')
+RELICGET PLOC('https://github.com/RelicPackages/FFEDIT/archive/master.zip') PDIR('FFEDIT-master') PNAME('SOMELIB')
+RELICGET PLOC('https://github.com/RelicPackages/RPGDYNARR/archive/master.zip') PDIR('RPGDYNARR-master') PNAME('SOMELIB')
 ```
 
 This new ZIP functionality should allow the package manager to work with other hosting sites like BitBucket. **[You can find a video guide to install Packages here](https://www.youtube.com/watch?v=uQFq-hbO-Y0&feature=youtu.be)** (Old-method)
