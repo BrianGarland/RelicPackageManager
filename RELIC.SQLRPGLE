@@ -32,7 +32,7 @@
          *n pointer value;  //Misc pointer
        end-pr;
 
-       dcl-s PathFile char(128) ;
+       dcl-s PathFile char(256) ;
        dcl-s OpenMode char(5) ;
        dcl-s FilePtr pointer inz ;
        dcl-s RtvData char(256) ;
@@ -42,13 +42,13 @@
        Dcl-C gRepoZip  'REPO.ZIP';
        Dcl-S gUser     Char(10)     Inz(*User);
 
-       Dcl-S IFSLINK   Varchar(128); //Ending with /
+       Dcl-S IFSLINK   Varchar(256); //Ending with /
        Dcl-s INTOLIB   Char(10);
 
        Dcl-S gMode  Char(10);
        Dcl-S gIndex Int(5);
 
-       Dcl-S gCmds  Char(200) Dim(100);
+       Dcl-S gCmds  Char(300) Dim(100);
 
        Dcl-S gFails Int(3);
 
@@ -56,12 +56,17 @@
 
        Dcl-Pi RELIC;
          pZIPLoc Char(128) Const;
-         pNewDir Char(27)  Const;
+         pNewDir Char(50)  Const;
          pLib    Char(10)  Const;
        END-PI;
 
        If (%Parms < 3 OR %Parms > 3);
          Print('Three parameters required.');
+         Return;
+       ENDIF;
+
+       If (pZIPLoc = *Blank OR pLib = *Blank);
+         Print('Location and Library cannot be blank.');
          Return;
        ENDIF;
 
@@ -99,6 +104,8 @@
 
        //*********************************************
 
+       //FILE_Download will now just
+       //download the repo ZIP to the IFS.
        Dcl-Proc FILE_Download;
          Dcl-Pi *N;
            pLocation Varchar(128) Const; //File
