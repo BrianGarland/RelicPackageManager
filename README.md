@@ -1,55 +1,9 @@
-# Relic Package Manager
-This project allows you to download and install programs onto your IBM i system from a ZIP file. 
+**[Read more on the wiki](https://github.com/Club-Seiden/RelicPackageManager/wiki)** for installation, usage and publishing guides. 
 
-* You can find [latest releases here](https://github.com/Club-Seiden/RelicPackageManager/releases).
-* You can find a [list of available packages here](https://github.com/Club-Seiden/RelicPackageManager/blob/master/Packages.md).
+### What is Relic? (RPM)
+Relic is a package manager that allows you to build ILE based-software from any place on the internet. Relic is a community run project and hopefully ideas for Relic come out of the IBM i community. Relic makes use of current technologies such as DB2 services to access the internet, a package is built out of a build file. Please refer to the wiki for
 
-Basic Package Manager for IBM i, tested on:
-
+Currently tested on:
 + 7.1
 + 7.2
 + 7.3
-
-**If you want to get your RPG project on GitHub, BitBucket or somewhere more private** then please let me know on [Gitter](https://gitter.im/WorksOfBarry) or by [emailing me](mailto:mrliamallan@live.co.uk) as I am more than willing to help. :-)
-
-### How to install
-
-The current way of installing
-
-1. You'll need to get the source from this repo into a source member or IFS file - FTP / Copy+Paste via Rational Developer for i. I've been using `#RELIC` as my development library, but the choice is your.
-2. `CRTSQLRPGI OBJ(#RELIC/RELIC) SRCFILE(#RELIC/QRPGLESRC) SRCMBR(RELIC) COMMIT(*NONE) OPTION(*EVENTF) RPGPPOPT(*LVL2) REPLACE(*YES) DBGVIEW(*SOURCE)` to compile.
-3. **You will** also need a command over the RELIC program. `RELICGET.CMD` exists within this repo, you should be able to copy the source from that and create it using `CRTCMD`.
-3. Should hopefully be installed. 
-
-**[You can find a video guide to install Relic with RDi here](https://www.youtube.com/watch?v=6v5SSx7sHOA&feature=youtu.be)**
-
-**OR**
-
-1. Do a `git clone https://github.com/Club-Seiden/RelicPackageManager.git /home/[USER]/Relic/` where `[USER]` is your user profile name (you also have to create the Relic directory). 
-2. Compile RELIC.RPGLE from the IFS (I use #RELIC as the library, you can use any) using `CRTSQLRPGI` with `COMMIT(*NONE)`.
-3. You'll need to compile RELICGET.CMD as well, and use it with `CRTCMD` over the RELIC *PGM you created. You will need to make an SPF to create the command, but make sure you create the RELIC *PGM first.
-
-If you're getting `error: SSL certificate problem: unable to get local issuer certificate while accessing`.. while attemping to clone, put `GIT_SSL_NO_VERIFY=true` infront of `git clone` and it should clone successfully.
-
-**[You can find a video guide to install Relic with Git here](https://www.youtube.com/watch?v=bVNusxDSmWY&feature=youtu.be)**
-
-### How to use
-
-1. Find a repo you want to install onto your system, for example [FFEDIT](https://github.com/RelicPackages/FFEDIT).
-2. You'll need the ZIP to this repo. On GitHub, you can click 'Clone or download', then proceed to right click on 'Download ZIP' - you'll need to copy the direct link to this ZIP file.
-3. There are three paramters to the RELIC program. The link to a ZIP of the repository (copied previously), the subfolder within the ZIP (If the repo root is within a folder; otherwise, leave blank) and what library to use/install into. 
-
-Examples
-```
-RELICGET PLOC('https://github.com/RelicPackages/FFEDIT/archive/master.zip') PDIR('FFEDIT-master') PNAME('SOMELIB')
-RELICGET PLOC('https://github.com/RelicPackages/RPGDYNARR/archive/master.zip') PDIR('RPGDYNARR-master') PNAME('SOMELIB')
-```
-
-This new ZIP functionality should allow the package manager to work with other hosting sites like BitBucket. **[You can find a video guide to install Packages here](https://www.youtube.com/watch?v=uQFq-hbO-Y0&feature=youtu.be)** (Old-method)
-
-### How to create a build file.
-
-1. Create a `build.txt` file in your repo.
-2. A build file contains 1 section. `build:` is the commands to run after all directories and sources have been made from the ZIP file.
-
-You can find examples in any repo in the [RelicPackages organisation](https://github.com/RelicPackages). You'll file that `files:` and `dirs:` is no longer needed with the new method of building a packaged (with a ZIP file).
