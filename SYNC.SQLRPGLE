@@ -206,7 +206,7 @@
               + 'TOSTMF(''' + %Trim(pLib) + '/'
                             + %Trim(pObj) + '/'
                             + %Trim(pMbr) + '.' + %Trim(pTyp) + ''')'
-              + ' STMFOPT(*ADD) CVTDTA(*AUTO)';
+              + ' STMFOPT(*ADD) CVTDTA(*AUTO) STMFCCSID(1208)';
 
          printf('.');
 
