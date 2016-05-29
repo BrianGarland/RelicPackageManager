@@ -23,8 +23,8 @@
          MLSEU2 Char(10); //Type
        END-DS;
 
-       Dcl-S gBuildInd Int(5)       Inz(1);
-       Dcl-S gBuild    Char(256) Dim(250);
+       Dcl-S gBuildInd Int(5)    Inz(1);
+       Dcl-S gBuild    Char(300) Dim(250);
 
        //*********************************
 

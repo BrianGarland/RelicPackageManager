@@ -50,8 +50,6 @@
        Dcl-S gMode  Char(10);
        Dcl-S gIndex Int(5);
 
-       Dcl-S gCmds  Char(300) Dim(100);
-
        Dcl-S gFails Int(3);
 
        //*********************************************
