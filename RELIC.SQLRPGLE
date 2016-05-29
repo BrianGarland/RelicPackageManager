@@ -87,6 +87,7 @@
          Else;
            Print('Attempted to build ' + %Trim(pZIPLoc) + '.');
            Print(' > error count: ' + %Char(gFails));
+           Print(' > directory not deleted');
          ENDIF;
        Endif;
 
@@ -108,7 +109,7 @@
        //FILE_Download will now just
        //download the repo ZIP to the IFS.
        Dcl-Proc FILE_Download;
-         Dcl-Pi *N;
+         Dcl-Pi *N Ind;
            pLocation Varchar(128) Const; //File
          END-PI;
 
@@ -124,6 +125,8 @@
            INTO :lFile
            FROM SYSIBM.SYSDUMMY1;
 
+         Return (SQLSTATE = '00000');
+
        END-PROC;
 
        //*********************************************
@@ -131,7 +134,13 @@
        Dcl-Proc BUILD_Prepare;
          Dcl-Pi *N Ind End-Pi;
 
-         FILE_Download(%Trim(pZIPLoc)); //Download ZIP
+         //Download ZIP
+         If (FILE_Download(%Trim(pZIPLoc)) = *Off);
+           Print('Failed to download ZIP.');
+           Return *Off;
+         Else;
+           Print('ZIP downloaded..');
+         ENDIF;
 
          //Extract the ZIP file
          BUILD_Command('QSH CMD(''jar xf ' + IFSLINK + gRepoZip + ''')');
