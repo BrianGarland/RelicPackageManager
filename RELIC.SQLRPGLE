@@ -32,10 +32,12 @@
          *n pointer value;  //Misc pointer
        end-pr;
 
-       dcl-s PathFile char(256) ;
+       Dcl-C CMD_LEN 300;
+
+       dcl-s PathFile char(CMD_LEN) ;
+       dcl-s RtvData char(CMD_LEN) ;
        dcl-s OpenMode char(5) ;
        dcl-s FilePtr pointer inz ;
-       dcl-s RtvData char(256) ;
 
        //*********************************************
 
@@ -78,7 +80,6 @@
        gFails   = 0;
 
        If (BUILD_Prepare());
-         BUILD_Process();
 
          If (gFails = 0);
            Print('Built from ' + %Trim(pZIPLoc) + ' sucessfully.');
@@ -179,7 +180,7 @@
              Other;
                Select;
                  When (gMode = '*BUILD');
-                   gCmds(gIndex) = RtvData;
+                   BUILD_Command(RtvData);
 
                ENDSL;
                gIndex += 1;
@@ -188,6 +189,8 @@
 
            RtvData = ' ';
          enddo;
+
+         CloseFile(FilePtr);
 
          Return *On;
        End-Proc;
@@ -217,14 +220,4 @@
          Endmon;
        END-PROC;
 
-       //*********************************************
-
-       Dcl-Proc BUILD_Process;
-
-         Dcl-S lIndex Int(5) Inz(1);
-
-         For lIndex = 1 to %Lookup(*Blank:gCmds)-1;
-           BUILD_Command(gCmds(lIndex));
-         ENDFOR;
-
-       END-PROC; 
+       //********************************************* 
