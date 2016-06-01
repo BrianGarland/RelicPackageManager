@@ -143,6 +143,9 @@
            Print('ZIP downloaded..');
          ENDIF;
 
+         gPackage.Name = %Trim(pNewDir);
+         gPackage.Ver  = '1';
+
          //Extract the ZIP file
          BUILD_Command('QSH CMD(''jar xf ' + IFSLINK + gRepoZip + ''')');
          BUILD_Command('RMVLNK OBJLNK(''' + IFSLINK + gRepoZip + ''')');
