@@ -48,9 +48,12 @@
        Dcl-s INTOLIB   Char(10);
 
        Dcl-S gMode  Char(10);
-       Dcl-S gIndex Int(5);
-
        Dcl-S gFails Int(3);
+
+       Dcl-Ds gPackage Qualified;
+         Name Varchar(32);
+         Ver  Varchar(10);
+       End-Ds;
 
        //*********************************************
 
@@ -174,23 +177,31 @@
 
              When (RtvData = 'dirs:');
                Print('Directories directive not supported in build file.');
-               gIndex = 1;
 
              When (RtvData = 'files:');
                Print('Files directive not supported in build file.');
-               gIndex = 1;
 
              When (RtvData = 'build:');
                gMode = '*BUILD';
-               gIndex = 1;
+
+             When (RtvData = 'version:');
+               gMode = '*VER';
+
+             When (RtvData = 'name:');
+               gMode = '*NAME';
 
              Other;
                Select;
                  When (gMode = '*BUILD');
                    BUILD_Command(RtvData);
 
+                 When (gMode = '*NAME');
+                   gPackage.Name = %Trim(RtvData);
+
+                 When (gMode = '*VER');
+                   gPackage.Ver = %Trim(RtvData);
+
                ENDSL;
-               gIndex += 1;
 
            ENDSL;
 
@@ -206,11 +217,13 @@
 
        Dcl-Proc BUILD_Command;
          Dcl-Pi *N;
-           pCmd Char(200) Value;
+           pCmd Char(CMD_LEN) Value;
          END-PI;
 
          pCmd = %ScanRpl('&INTOLIB':%Trim(INTOLIB):pCmd);
          pCmd = %ScanRpl('&DIR/':%Trim(IFSLINK):pCmd);
+         pCmd = %ScanRpl('&NAME':%Trim(gPackage.Name):pCmd);
+         pCmd = %ScanRpl('&VER':%Trim(gPackage.Ver):pCmd);
 
          Monitor;
            If (Cmd(pCmd) = 1);
