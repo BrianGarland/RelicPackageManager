@@ -136,6 +136,10 @@
        Dcl-Proc BUILD_Prepare;
          Dcl-Pi *N Ind End-Pi;
 
+         Dcl-S lBuild   Varchar(CMD_LEN);
+         Dcl-S lComment Ind;
+         Dcl-S lComTxt  Char(2);
+
          gPackage.Name = %Trim(pNewDir);
          gPackage.Ver  = '1';
 
@@ -170,44 +174,72 @@
            Return *Off;
          EndIf;
 
-         dow  (ReadFile(%addr(RtvData):%Len(RtvData):FilePtr) <> *null) ;
+         //When lComment = *On, ignore line
+         lComment = *Off;
+
+         dow  (ReadFile(%addr(RtvData):%Len(RtvData):FilePtr) <> *null);
+           RtvData = %Trim(RtvData);
+           If (%Subst(RtvData:1:1) = x'25');
+             Iter;
+           ENDIF;
+
            RtvData = %xlate(x'00':' ':RtvData) ;  //End of record null
            RtvData = %xlate(x'25':' ':RtvData) ;  //Line feed (LF)
            RtvData = %xlate(x'0D':' ':RtvData) ;  //Carriage return (CR)
            RtvData = %xlate(x'05':' ':RtvData) ;  //Tab
-           RtvData = %Trim(RtvData);
+           lBuild = %Trim(RtvData);
 
-           If (RtvData = *Blank);
+           If (lBuild = *Blank);
+             Iter;
+           ENDIF;
+
+           If (%Len(lBuild) > 2);
+             lComTxt = %Subst(lBuild:1:2);
+             Select;
+               When (lComTxt = '//');
+                 Iter;
+               When (lComtxt = '/*');
+                 lComment = *On;
+             ENDSL;
+
+             lComTxt = %Subst(lBuild:%Len(lBuild)-1:2);
+             If (lComTxt = '*/');
+               lComment = *Off;
+               Iter;
+             ENDIF;
+           ENDIF;
+
+           If (lComment = *On);
              Iter;
            ENDIF;
 
            Select;
 
-             When (RtvData = 'dirs:');
+             When (lBuild = 'dirs:');
                Print('Directories directive not supported in build file.');
 
-             When (RtvData = 'files:');
+             When (lBuild = 'files:');
                Print('Files directive not supported in build file.');
 
-             When (RtvData = 'build:');
+             When (lBuild = 'build:');
                gMode = '*BUILD';
 
-             When (RtvData = 'version:');
+             When (lBuild = 'version:');
                gMode = '*VER';
 
-             When (RtvData = 'name:');
+             When (lBuild = 'name:');
                gMode = '*NAME';
 
              Other;
                Select;
                  When (gMode = '*BUILD');
-                   BUILD_Command(RtvData);
+                   BUILD_Command(lBuild);
 
                  When (gMode = '*NAME');
-                   gPackage.Name = %Trim(RtvData);
+                   gPackage.Name = %Trim(lBuild);
 
                  When (gMode = '*VER');
-                   gPackage.Ver = %Trim(RtvData);
+                   gPackage.Ver = %Trim(lBuild);
 
                ENDSL;
 
