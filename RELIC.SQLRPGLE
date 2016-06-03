@@ -58,13 +58,13 @@
        //*********************************************
 
        Dcl-Pi RELIC;
-         pZIPLoc Char(128) Const;
-         pNewDir Char(50)  Const;
-         pLib    Char(10)  Const;
-         pFetchOption Char(10) Const;
+         pZIPLoc      Char(128) Const;
+         pNewDir      Char(50)  Const;
+         pLib         Char(10)  Const;
+         pFetchOption Char(10)  Const;
        END-PI;
 
-       If (%Parms < 3);
+       If (%Parms < 4);
          Print('Three parameters required.');
          Return;
        ENDIF;
@@ -139,20 +139,20 @@
          gPackage.Name = %Trim(pNewDir);
          gPackage.Ver  = '1';
 
-         // only download if needed; allow for local build-only
-         if (pFetchOption = '*FETCH');
+         // Only download if needed; allow for local build-only
+         If (pFetchOption = '*FETCH');
 
-          //Download ZIP
-          If (FILE_Download(%Trim(pZIPLoc)) = *Off);
-            Print('Failed to download ZIP.');
-            Return *Off;
-          Else;
-            Print('ZIP downloaded..');
-          ENDIF;
+           //Download ZIP
+           If (FILE_Download(%Trim(pZIPLoc)) = *Off);
+             Print('Failed to download ZIP.');
+             Return *Off;
+           Else;
+             Print('ZIP downloaded..');
+           ENDIF;
 
-          //Extract the ZIP file
-          BUILD_Command('QSH CMD(''jar xf ' + IFSLINK + gRepoZip + ''')');
-          BUILD_Command('RMVLNK OBJLNK(''' + IFSLINK + gRepoZip + ''')');
+           //Extract the ZIP file
+           BUILD_Command('QSH CMD(''jar xf ' + IFSLINK + gRepoZip + ''')');
+           BUILD_Command('RMVLNK OBJLNK(''' + IFSLINK + gRepoZip + ''')');
          endif;
 
          //Use the new folder incase it extracts into a folder
@@ -248,4 +248,4 @@
          Endmon;
        END-PROC;
 
-       //*********************************************
+       //********************************************* 
