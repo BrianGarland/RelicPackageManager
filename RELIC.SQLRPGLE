@@ -61,9 +61,10 @@
          pZIPLoc Char(128) Const;
          pNewDir Char(50)  Const;
          pLib    Char(10)  Const;
+         pFetchOption Char(10) Const;
        END-PI;
 
-       If (%Parms < 3 OR %Parms > 3);
+       If (%Parms < 3);
          Print('Three parameters required.');
          Return;
        ENDIF;
@@ -135,20 +136,24 @@
        Dcl-Proc BUILD_Prepare;
          Dcl-Pi *N Ind End-Pi;
 
-         //Download ZIP
-         If (FILE_Download(%Trim(pZIPLoc)) = *Off);
-           Print('Failed to download ZIP.');
-           Return *Off;
-         Else;
-           Print('ZIP downloaded..');
-         ENDIF;
-
          gPackage.Name = %Trim(pNewDir);
          gPackage.Ver  = '1';
 
-         //Extract the ZIP file
-         BUILD_Command('QSH CMD(''jar xf ' + IFSLINK + gRepoZip + ''')');
-         BUILD_Command('RMVLNK OBJLNK(''' + IFSLINK + gRepoZip + ''')');
+         // only download if needed; allow for local build-only
+         if (pFetchOption = '*FETCH');
+
+          //Download ZIP
+          If (FILE_Download(%Trim(pZIPLoc)) = *Off);
+            Print('Failed to download ZIP.');
+            Return *Off;
+          Else;
+            Print('ZIP downloaded..');
+          ENDIF;
+
+          //Extract the ZIP file
+          BUILD_Command('QSH CMD(''jar xf ' + IFSLINK + gRepoZip + ''')');
+          BUILD_Command('RMVLNK OBJLNK(''' + IFSLINK + gRepoZip + ''')');
+         endif;
 
          //Use the new folder incase it extracts into a folder
          If (pNewDir <> *Blank);
@@ -243,4 +248,4 @@
          Endmon;
        END-PROC;
 
-       //********************************************* 
+       //*********************************************
