@@ -236,7 +236,7 @@
              When (lBuild = 'version:');
                gMode = '*VER';
 
-             when (lBuild = 'licences:');
+             when (lBuild = 'licenses:');
                gMode = '*LIC';
 
              When (lBuild = 'build:');
