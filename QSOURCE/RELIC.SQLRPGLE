@@ -84,10 +84,13 @@
        If (BUILD_Prepare());
 
          If (gFails = 0);
+
            Print('Built from ' + %Trim(pZIPLoc) + ' sucessfully.');
-           BUILD_Command('RMDIR DIR(''' + IFSLINK + ''') SUBTREE(*ALL)');
+           If (pFetchOption <> '*BUILDONLY');
+             BUILD_Command('RMDIR DIR(''' + IFSLINK + ''') SUBTREE(*ALL)');
+           Endif;
          Else;
-           Print('Attempted to build ' + %Trim(pZIPLoc) + '.');
+           Print('Attempted to build and failed');
            Print(' > error count: ' + %Char(gFails));
            Print(' > directory not deleted');
          ENDIF;
@@ -143,21 +146,27 @@
          gPackage.Name = %Trim(pNewDir);
          gPackage.Ver  = '1';
 
-         // Only download if needed; allow for local build-only
-         If (pFetchOption = '*FETCH');
+         Select;
 
-           //Download ZIP
-           If (FILE_Download(%Trim(pZIPLoc)) = *Off);
-             Print('Failed to download ZIP.');
-             Return *Off;
-           Else;
-             Print('ZIP downloaded..');
-           ENDIF;
+           // Only download if needed; allow for local build-only
+           When (pFetchOption = '*FETCH');
+             //Download ZIP
+             If (FILE_Download(%Trim(pZIPLoc)) = *Off);
+               Print('Failed to download ZIP.');
+               Return *Off;
+             Else;
+               Print('ZIP downloaded..');
+             ENDIF;
 
-           //Extract the ZIP file
-           BUILD_Command('QSH CMD(''jar xf ' + IFSLINK + gRepoZip + ''')');
-           BUILD_Command('RMVLNK OBJLNK(''' + IFSLINK + gRepoZip + ''')');
-         endif;
+             //Extract the ZIP file
+             BUILD_Command('QSH CMD(''jar xf ' + IFSLINK + gRepoZip + ''')');
+             BUILD_Command('RMVLNK OBJLNK(''' + IFSLINK + gRepoZip + ''')');
+
+           // Use *buildonly if ZIP already exists.
+           When (pFetchOption = '*BUILDONLY');
+             Print('Not downloading ZIP (*BUILDONLY)');
+
+         ENDSL;
 
          //Use the new folder incase it extracts into a folder
          If (pNewDir <> *Blank);
@@ -221,25 +230,34 @@
              When (lBuild = 'files:');
                Print('Files directive not supported in build file.');
 
-             When (lBuild = 'build:');
-               gMode = '*BUILD';
+             When (lBuild = 'name:');
+               gMode = '*NAME';
 
              When (lBuild = 'version:');
                gMode = '*VER';
 
-             When (lBuild = 'name:');
-               gMode = '*NAME';
+             when (lBuild = 'licences:');
+               gMode = '*LIC';
+
+             When (lBuild = 'build:');
+               gMode = '*BUILD';
 
              Other;
                Select;
-                 When (gMode = '*BUILD');
-                   BUILD_Command(lBuild);
-
                  When (gMode = '*NAME');
                    gPackage.Name = %Trim(lBuild);
 
                  When (gMode = '*VER');
                    gPackage.Ver = %Trim(lBuild);
+
+                 When (gMode = '*LIC');
+                   If (BUILD_HasLicence(lBuild) = *Off);
+                     gFails += 1;
+                     Return *Off;
+                   ENDIF;
+
+                 When (gMode = '*BUILD');
+                   BUILD_Command(lBuild);
 
                ENDSL;
 
@@ -252,6 +270,56 @@
 
          Return *On;
        End-Proc;
+
+       //*********************************************
+
+       Dcl-Proc BUILD_HasLicence;
+         Dcl-Pi *N Ind;
+           PRODUCT_ID Char(7) Value;
+         END-PI;
+
+         Dcl-S lSQLSTATE Char(2);
+         Dcl-S lFound    Int(3);
+
+         lFound = 0;
+
+         Select;
+           When (PRODUCT_ID = 'ILE');
+             //ILE COMPILERS: RPG, COBOL, C/C++
+             PRODUCT_ID = '5770ST1';
+
+           When (PRODUCT_ID = 'DB2');
+             //IBM DB2 Query Manager and SQL Development Kit for...
+             PRODUCT_ID = '5770ST1';
+         ENDSL;
+
+         //IF PRODUCT_ID in LIC_INFO
+         EXEC SQL
+           SELECT 1
+           INTO :lFound
+           FROM QSYS2/LIC_INFO
+           WHERE
+             PRODUCT_ID = :PRODUCT_ID AND
+             (LICENSE_EXPIRATION <= CURRENT DATE OR
+              LICENSE_EXPIRATION IS NULL);
+
+         lSQLSTATE = SQLSTATE;
+
+         Select;
+           When (lSQLSTATE = '00');
+             Return *On;
+
+           When (lSQLSTATE = '02');
+             Print('Licence ' + %TrimR(PRODUCT_ID) + ' not found.');
+             Return *Off;
+
+           Other;
+             Print( 'SQL Error when looking for licence'
+                   + %TrimR(PRODUCT_ID) + ' (' + SQLSTATE + ')');
+             Return *Off;
+         ENDSL;
+
+       END-PROC;
 
        //*********************************************
 
@@ -280,4 +348,4 @@
          Endmon;
        END-PROC;
 
-       //********************************************* 
+       //*********************************************
