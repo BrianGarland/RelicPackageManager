@@ -65,12 +65,17 @@
        END-PI;
 
        If (%Parms < 4);
-         Print('Three parameters required.');
+         Print('Four parameters required.');
          Return;
        ENDIF;
-
-       If (pZIPLoc = *Blank OR pLib = *Blank);
-         Print('Location and Library cannot be blank.');
+		
+       If (pFetchOption = '*FETCH');
+	     If (pZIPLoc = *Blank);
+		   Print('Location cannot be blank with *FETCH mode.');
+		 Endif;
+	   Endif;
+       If (pLib = *Blank);
+         Print('Library cannot be blank.');
          Return;
        ENDIF;
 
@@ -237,6 +242,7 @@
                gMode = '*VER';
 
              when (lBuild = 'licenses:');
+			   Print('License mode currently not supported.');
                gMode = '*LIC';
 
              When (lBuild = 'build:');
@@ -249,12 +255,6 @@
 
                  When (gMode = '*VER');
                    gPackage.Ver = %Trim(lBuild);
-
-                 When (gMode = '*LIC');
-                   If (BUILD_HasLicence(lBuild) = *Off);
-                     gFails += 1;
-                     Return *Off;
-                   ENDIF;
 
                  When (gMode = '*BUILD');
                    BUILD_Command(lBuild);
@@ -270,56 +270,6 @@
 
          Return *On;
        End-Proc;
-
-       //*********************************************
-
-       Dcl-Proc BUILD_HasLicence;
-         Dcl-Pi *N Ind;
-           PRODUCT_ID Char(7) Value;
-         END-PI;
-
-         Dcl-S lSQLSTATE Char(2);
-         Dcl-S lFound    Int(3);
-
-         lFound = 0;
-
-         Select;
-           When (PRODUCT_ID = 'ILE');
-             //ILE COMPILERS: RPG, COBOL, C/C++
-             PRODUCT_ID = '5770ST1';
-
-           When (PRODUCT_ID = 'DB2');
-             //IBM DB2 Query Manager and SQL Development Kit for...
-             PRODUCT_ID = '5770ST1';
-         ENDSL;
-
-         //IF PRODUCT_ID in LIC_INFO
-         EXEC SQL
-           SELECT 1
-           INTO :lFound
-           FROM QSYS2/LIC_INFO
-           WHERE
-             PRODUCT_ID = :PRODUCT_ID AND
-             (LICENSE_EXPIRATION <= CURRENT DATE OR
-              LICENSE_EXPIRATION IS NULL);
-
-         lSQLSTATE = SQLSTATE;
-
-         Select;
-           When (lSQLSTATE = '00');
-             Return *On;
-
-           When (lSQLSTATE = '02');
-             Print('Licence ' + %TrimR(PRODUCT_ID) + ' not found.');
-             Return *Off;
-
-           Other;
-             Print( 'SQL Error when looking for licence'
-                   + %TrimR(PRODUCT_ID) + ' (' + SQLSTATE + ')');
-             Return *Off;
-         ENDSL;
-
-       END-PROC;
 
        //*********************************************
 
