@@ -120,7 +120,7 @@
              BUILD_Command('RMDIR DIR(''' + IFSLINK + ''') SUBTREE(*ALL)');
            Endif;
          Else;
-           Print('Attempted to build and failed');
+           Print('Attempted to build..');
            Print(' > error count: ' + %Char(gFails));
            Print(' > directory not deleted');
          ENDIF;
