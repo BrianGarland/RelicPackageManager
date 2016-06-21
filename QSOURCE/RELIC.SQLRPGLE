@@ -40,11 +40,16 @@
        end-pr;
 
        Dcl-C CMD_LEN 300;
-
-       dcl-s PathFile char(CMD_LEN) ;
-       dcl-s RtvData char(CMD_LEN) ;
-       dcl-s OpenMode char(5) ;
-       dcl-s FilePtr pointer inz ;
+	
+	   Dcl-Ds File_Temp Qualified Template;
+         PathFile char(CMD_LEN);
+         RtvData char(CMD_LEN);
+         OpenMode char(5);
+         FilePtr pointer inz;
+	   End-ds;
+	   
+	   Dcl-Ds gBuildFile  LikeDS(File_Temp);
+	   Dcl-Ds gStreamFile LikeDS(File_Temp);
 
        //*********************************************
 
@@ -73,14 +78,17 @@
          pLogOption   Char(10)  Const; //*DSP, *STMF
        END-PI;
 
+       *InLR = *On;
+
        If (%Parms < 5);
          Print('Five parameters required.');
          Return;
        ENDIF;
 		
        If (pFetchOption = '*FETCH');
-	 If (pZIPLoc = *Blank);
-	   Print('Location cannot be blank with *FETCH mode.');
+	     If (pZIPLoc = *Blank);
+	       Print('Location cannot be blank with *FETCH mode.');
+		   Return;
          Endif;
        Endif;
        
@@ -97,6 +105,13 @@
        IFSLINK  = '/home/' + %Trim(gUser) + '/';
 
        gFails   = 0;
+	   
+	   If (gSTMF);
+	     gSTMF = LOG_Prepare();
+		 If (gSTMF = *Off);
+		   Print('Failed to create log with PLOG(*STMF).');
+		 Endif;
+	   Endif;
 
        If (BUILD_Prepare());
          If (gFails = 0);
@@ -110,18 +125,31 @@
            Print(' > directory not deleted');
          ENDIF;
        Endif;
-
-       *InLR = *On;
+	   
+	   If (gSTMF);
+	     LOG_Close();
+	   Endif;
+	   
        Return;
 
        //*********************************************
 
        Dcl-Proc Print;
          Dcl-Pi Print;
-           pValue Char(128) Const;
+           pValue Char(128) Value;
          END-PI;
-
-         printf(%Trim(pValue) + x'25');
+		
+		 pValue = %TrimR(pValue) + x'25';
+		 
+         If (gSTMF);
+		   WriteFile(%Addr(pValue)
+                    :%Len(%TrimR(pValue))
+                    :1
+                    :gStreamFile.FilePtr);
+		 Else;
+           printf(%Trim(pValue));
+		 Endif;
+		 
        End-Proc;
 
        //*********************************************
@@ -189,11 +217,11 @@
          ENDIF;
 
          //Process the build file
-         PathFile = IFSLINK + 'build.txt' + x'00';
-         OpenMode = 'r' + x'00';
-         FilePtr  = OpenFile(%addr(PathFile):%addr(OpenMode));
+         gBuildFile.PathFile = IFSLINK + 'build.txt' + x'00';
+         gBuildFile.OpenMode = 'r' + x'00';
+         gBuildFile.FilePtr  = OpenFile(%addr(PathFile):%addr(OpenMode));
 
-         If (FilePtr = *null);
+         If (gBuildFile.FilePtr = *null);
            Print('Failed to read build file.');
            Return *Off;
          EndIf;
@@ -201,17 +229,20 @@
          //When lComment = *On, ignore line
          lComment = *Off;
 
-         dow  (ReadFile(%addr(RtvData):%Len(RtvData):FilePtr) <> *null);
-           RtvData = %Trim(RtvData);
-           If (%Subst(RtvData:1:1) = x'25');
+         dow  (ReadFile(%addr(gBuildFile.RtvData)
+		               :%Len(gBuildFile.RtvData)
+					   :gBuildFile.FilePtr) <> *null);
+					   
+           gBuildFile.RtvData = %Trim(RtvData);
+           If (%Subst(gBuildFile.RtvData:1:1) = x'25');
              Iter;
            ENDIF;
 
-           RtvData = %xlate(x'00':' ':RtvData) ;  //End of record null
-           RtvData = %xlate(x'25':' ':RtvData) ;  //Line feed (LF)
-           RtvData = %xlate(x'0D':' ':RtvData) ;  //Carriage return (CR)
-           RtvData = %xlate(x'05':' ':RtvData) ;  //Tab
-           lBuild = %Trim(RtvData);
+           gBuildFile.RtvData = %xlate(x'00':' ':gBuildFile.RtvData);//End of record null
+           gBuildFile.RtvData = %xlate(x'25':' ':gBuildFile.RtvData);//Line feed (LF)
+           gBuildFile.RtvData = %xlate(x'0D':' ':gBuildFile.RtvData);//Carriage return (CR)
+           gBuildFile.RtvData = %xlate(x'05':' ':gBuildFile.RtvData);//Tab
+           lBuild = %Trim(gBuildFile.RtvData);
 
            If (lBuild = *Blank);
              Iter;
@@ -273,10 +304,10 @@
 
            ENDSL;
 
-           RtvData = ' ';
+           gBuildFile.RtvData = ' ';
          enddo;
 
-         CloseFile(FilePtr);
+         CloseFile(gBuildFile.FilePtr);
 
          Return *On;
        End-Proc;
@@ -309,3 +340,19 @@
        END-PROC;
 
        //*********************************************
+	   
+	   Dcl-Proc LOG_Prepare;
+	     gStreamFile.PathFile = IFSLINK + %char(%timestamp) + x'00';
+         gStreamFile.OpenMode = 'ab' + x'00';
+         gStreamFile.FilePtr  = OpenFile(%addr(gStreamFile.PathFile)
+		                                :%addr(gStreamFile.OpenMode));
+										
+		 Return (gStreamFile.FilePtr <> *null);
+		 //Returns *on if it failed to open
+	   End-Proc;
+
+       //*********************************************
+	   
+	   Dcl-Proc LOG_Close;
+         CloseFile(gStreamFile.FilePtr);
+	   End-Proc;
