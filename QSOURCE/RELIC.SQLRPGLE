@@ -40,16 +40,16 @@
        end-pr;
 
        Dcl-C CMD_LEN 300;
-	
-	   Dcl-Ds File_Temp Qualified Template;
+    
+       Dcl-Ds File_Temp Qualified Template;
          PathFile char(CMD_LEN);
          RtvData char(CMD_LEN);
          OpenMode char(5);
          FilePtr pointer inz;
-	   End-ds;
-	   
-	   Dcl-Ds gBuildFile  LikeDS(File_Temp);
-	   Dcl-Ds gStreamFile LikeDS(File_Temp);
+       End-ds;
+       
+       Dcl-Ds gBuildFile  LikeDS(File_Temp);
+       Dcl-Ds gStreamFile LikeDS(File_Temp);
 
        //*********************************************
 
@@ -84,11 +84,11 @@
          Print('Five parameters required.');
          Return;
        ENDIF;
-		
+        
        If (pFetchOption = '*FETCH');
-	     If (pZIPLoc = *Blank);
-	       Print('Location cannot be blank with *FETCH mode.');
-		   Return;
+         If (pZIPLoc = *Blank);
+           Print('Location cannot be blank with *FETCH mode.');
+           Return;
          Endif;
        Endif;
        
@@ -105,13 +105,13 @@
        IFSLINK  = '/home/' + %Trim(gUser) + '/';
 
        gFails   = 0;
-	   
-	   If (gSTMF);
-	     gSTMF = LOG_Prepare();
-		 If (gSTMF = *Off);
-		   Print('Failed to create log with PLOG(*STMF).');
-		 Endif;
-	   Endif;
+       
+       If (gSTMF);
+         gSTMF = LOG_Prepare();
+         If (gSTMF = *Off);
+           Print('Failed to create log with PLOG(*STMF).');
+         Endif;
+       Endif;
 
        If (BUILD_Prepare());
          If (gFails = 0);
@@ -125,11 +125,11 @@
            Print(' > directory not deleted');
          ENDIF;
        Endif;
-	   
-	   If (gSTMF);
-	     LOG_Close();
-	   Endif;
-	   
+       
+       If (gSTMF);
+         LOG_Close();
+       Endif;
+       
        Return;
 
        //*********************************************
@@ -138,18 +138,18 @@
          Dcl-Pi Print;
            pValue Char(128) Value;
          END-PI;
-		
-		 pValue = %TrimR(pValue) + x'25';
-		 
+        
+         pValue = %TrimR(pValue) + x'25';
+         
          If (gSTMF);
-		   WriteFile(%Addr(pValue)
+           WriteFile(%Addr(pValue)
                     :%Len(%TrimR(pValue))
                     :1
                     :gStreamFile.FilePtr);
-		 Else;
+         Else;
            printf(%Trim(pValue));
-		 Endif;
-		 
+         Endif;
+         
        End-Proc;
 
        //*********************************************
@@ -230,9 +230,9 @@
          lComment = *Off;
 
          dow  (ReadFile(%addr(gBuildFile.RtvData)
-		               :%Len(gBuildFile.RtvData)
-					   :gBuildFile.FilePtr) <> *null);
-					   
+                       :%Len(gBuildFile.RtvData)
+                       :gBuildFile.FilePtr) <> *null);
+                       
            gBuildFile.RtvData = %Trim(RtvData);
            If (%Subst(gBuildFile.RtvData:1:1) = x'25');
              Iter;
@@ -283,7 +283,7 @@
                gMode = '*VER';
 
              when (lBuild = 'licenses:');
-			   Print('License mode currently not supported.');
+               Print('License mode currently not supported.');
                gMode = '*LIC';
 
              When (lBuild = 'build:');
@@ -340,19 +340,19 @@
        END-PROC;
 
        //*********************************************
-	   
-	   Dcl-Proc LOG_Prepare;
-	     gStreamFile.PathFile = IFSLINK + %char(%timestamp) + x'00';
+       
+       Dcl-Proc LOG_Prepare;
+         gStreamFile.PathFile = IFSLINK + %char(%timestamp) + x'00';
          gStreamFile.OpenMode = 'ab' + x'00';
          gStreamFile.FilePtr  = OpenFile(%addr(gStreamFile.PathFile)
-		                                :%addr(gStreamFile.OpenMode));
-										
-		 Return (gStreamFile.FilePtr <> *null);
-		 //Returns *on if it failed to open
-	   End-Proc;
+                                        :%addr(gStreamFile.OpenMode));
+                                        
+         Return (gStreamFile.FilePtr <> *null);
+         //Returns *on if it failed to open
+       End-Proc;
 
        //*********************************************
-	   
-	   Dcl-Proc LOG_Close;
+       
+       Dcl-Proc LOG_Close;
          CloseFile(gStreamFile.FilePtr);
-	   End-Proc;
+       End-Proc;
