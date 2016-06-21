@@ -324,6 +324,7 @@
          pCmd = %ScanRpl('&DIR/':%Trim(IFSLINK):pCmd);
          pCmd = %ScanRpl('&NAME':%Trim(gPackage.Name):pCmd);
          pCmd = %ScanRpl('&VER':%Trim(gPackage.Ver):pCmd);
+         pCmd = %ScanRpl('&USER':%Trim(gUser):pCmd);
 
          Monitor;
            If (Cmd(pCmd) = 1);
