@@ -54,8 +54,9 @@
        Dcl-S IFSLINK   Varchar(256); //Ending with /
        Dcl-s INTOLIB   Char(10);
 
-       Dcl-S gMode    Char(10);
-       Dcl-S gFails   Int(3);
+       Dcl-S gSTMF  Ind;      //*On if output to streamfile
+       Dcl-S gMode  Char(10); //Used for scanning build file
+       Dcl-S gFails Int(3);
 
        Dcl-Ds gPackage Qualified;
          Name Varchar(32);
@@ -68,8 +69,8 @@
          pZIPLoc      Char(128) Const;
          pNewDir      Char(50)  Const;
          pLib         Char(10)  Const;
-         pFetchOption Char(10)  Const; //*FETCH, *BUILDONLY
-         pLog         Char(10)  Const; //*DFT, *STMF
+         pFetchOption Char(10)  Const;
+         pLogOption   Char(10)  Const; //*DSP, *STMF
        END-PI;
 
        If (%Parms < 5);
@@ -80,13 +81,15 @@
        If (pFetchOption = '*FETCH');
 	 If (pZIPLoc = *Blank);
 	   Print('Location cannot be blank with *FETCH mode.');
-	 Endif;
+         Endif;
        Endif;
        
        If (pLib = *Blank);
          Print('Library cannot be blank.');
          Return;
        ENDIF;
+       
+       gSTMF = (pLogOption = '*STMF');
 
        //*********************************************
 
@@ -94,12 +97,8 @@
        IFSLINK  = '/home/' + %Trim(gUser) + '/';
 
        gFails   = 0;
-       
-       If (pLog = '*STMF');
-       Endif;
 
        If (BUILD_Prepare());
-
          If (gFails = 0);
            Print('Built from ' + %Trim(pZIPLoc) + ' sucessfully.');
            If (pFetchOption <> '*BUILDONLY');
@@ -110,7 +109,6 @@
            Print(' > error count: ' + %Char(gFails));
            Print(' > directory not deleted');
          ENDIF;
-         
        Endif;
 
        *InLR = *On;
