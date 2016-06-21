@@ -219,7 +219,8 @@
          //Process the build file
          gBuildFile.PathFile = IFSLINK + 'build.txt' + x'00';
          gBuildFile.OpenMode = 'r' + x'00';
-         gBuildFile.FilePtr  = OpenFile(%addr(PathFile):%addr(OpenMode));
+         gBuildFile.FilePtr  = OpenFile(%addr(gBuildFile.PathFile)
+                                       :%addr(gBuildFile.OpenMode));
 
          If (gBuildFile.FilePtr = *null);
            Print('Failed to read build file.');
@@ -233,7 +234,7 @@
                        :%Len(gBuildFile.RtvData)
                        :gBuildFile.FilePtr) <> *null);
                        
-           gBuildFile.RtvData = %Trim(RtvData);
+           gBuildFile.RtvData = %Trim(gBuildFile.RtvData);
            If (%Subst(gBuildFile.RtvData:1:1) = x'25');
              Iter;
            ENDIF;
@@ -342,6 +343,7 @@
        //*********************************************
        
        Dcl-Proc LOG_Prepare;
+         Dcl-Pi *N Ind End-Pi;
          gStreamFile.PathFile = IFSLINK + %char(%timestamp) + x'00';
          gStreamFile.OpenMode = 'ab' + x'00';
          gStreamFile.FilePtr  = OpenFile(%addr(gStreamFile.PathFile)
