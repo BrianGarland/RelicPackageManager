@@ -9,4 +9,6 @@ Download files with DB2 RELICGET PLOC('https://github.com/WorksOfBarry/DB2GET/ar
 Scott Klement's FTP API RELICGET PLOC('https://github.com/RelicPackages/FTPAPI/archive/master.zip') PDIR('FTPAPI-master') PNAME(SOMELIB)
 Scott K's HTTP API      RELICGET PLOC('https://github.com/RelicPackages/HTTPAPI/archive/master.zip') PDIR('HTTPAPI-master') PNAME(LIBHTTP)
 IBMi FTP Client         RELICGET PLOC('https://github.com/ChrisHird/FTPCLNT/archive/V1.0.0.1.zip') PDIR('FTPCLNT-1.0.0.1') PNAME(FTPCLNT)
+ZLIB (ZIP+UNZIP CMDs)   RELICGET PLOC('https://github.com/ChrisHird/ZLIB/archive/master.zip') PDIR('ZLIB-master') PNAME(ZLIBSRC)
+FTPCLNT                 RELICGET PLOC('https://github.com/ChrisHird/FTPCLNT/archive/V1.0.0.2.zip') PDIR('FTPCLNT-1.0.0.1') PNAME(FTPCLNT)
 ```
