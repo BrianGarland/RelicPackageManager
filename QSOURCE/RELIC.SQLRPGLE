@@ -27,6 +27,13 @@
          *n int(10) value;  //Data size
          *n pointer value;  //Misc pointer
        end-pr;
+       
+       dcl-pr WriteFile pointer extproc('_C_IFS_fwrite');
+         *n pointer value;  //Write data
+         *n int(10) value;  //Data size
+         *n int(10) value;  //Block size
+         *n pointer value;  //Misc pointer
+       end-pr;
 
        dcl-pr CloseFile extproc('_C_IFS_fclose');
          *n pointer value;  //Misc pointer
@@ -47,7 +54,8 @@
        Dcl-S IFSLINK   Varchar(256); //Ending with /
        Dcl-s INTOLIB   Char(10);
 
-       Dcl-S gMode  Char(10);
+       Dcl-S gSTMF  Ind;      //*On if output to streamfile
+       Dcl-S gMode  Char(10); //Used for scanning build file
        Dcl-S gFails Int(3);
 
        Dcl-Ds gPackage Qualified;
@@ -62,22 +70,26 @@
          pNewDir      Char(50)  Const;
          pLib         Char(10)  Const;
          pFetchOption Char(10)  Const;
+         pLogOption   Char(10)  Const; //*DSP, *STMF
        END-PI;
 
-       If (%Parms < 4);
-         Print('Four parameters required.');
+       If (%Parms < 5);
+         Print('Five parameters required.');
          Return;
        ENDIF;
 		
        If (pFetchOption = '*FETCH');
-	     If (pZIPLoc = *Blank);
-		   Print('Location cannot be blank with *FETCH mode.');
-		 Endif;
-	   Endif;
+	 If (pZIPLoc = *Blank);
+	   Print('Location cannot be blank with *FETCH mode.');
+         Endif;
+       Endif;
+       
        If (pLib = *Blank);
          Print('Library cannot be blank.');
          Return;
        ENDIF;
+       
+       gSTMF = (pLogOption = '*STMF');
 
        //*********************************************
 
@@ -87,9 +99,7 @@
        gFails   = 0;
 
        If (BUILD_Prepare());
-
          If (gFails = 0);
-
            Print('Built from ' + %Trim(pZIPLoc) + ' sucessfully.');
            If (pFetchOption <> '*BUILDONLY');
              BUILD_Command('RMDIR DIR(''' + IFSLINK + ''') SUBTREE(*ALL)');
