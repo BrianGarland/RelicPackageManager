@@ -10,6 +10,5 @@
              PARM       KWD(PFETCH) TYPE(*char) LEN(10) PROMPT('Fetch, or +
                           build-only?') MIN(0) RSTD(*yes) DFT(*FETCH) +
                           VALUES(*FETCH *BUILDONLY)
-             PARM       KWD(PLOG) TYPE(*char) LEN(10) PROMPT('Logging')
-                          MIN(0) RSTD(*yes) DFT(*DSP) +
-                          VALUES(*DSP *STMF)
+             PARM       KWD(PLOG) TYPE(*char) LEN(10) PROMPT('Logging') +
+                          MIN(0) RSTD(*yes) DFT(*DSP) VALUES(*DSP *STMF) 
