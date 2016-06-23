@@ -102,7 +102,7 @@
        //*********************************************
 
        INTOLIB  = pLib;
-       IFSLINK  = '/home/' + %Trim(gUser) + '/';
+       IFSLINK  = '';
 
        gFails   = 0;
        
