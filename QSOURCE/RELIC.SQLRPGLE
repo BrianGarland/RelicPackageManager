@@ -309,7 +309,8 @@
                    If (lMonMsg > 0);
                      gMonMsg(lMonMsg) = lBuild
                    Else;
-                     Print('Unable to monitor "' + lBuild + '". Max capaticy for monitors hit.');
+                     Print( 'Unable to monitor "' + lBuild + '". Max capaticy '
+                          + 'for monitors hit.');   
                    Endif;
 
                  When (gMode = '*BUILD');
