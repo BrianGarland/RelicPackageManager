@@ -107,6 +107,7 @@
 
        gFails   = 0;
        
+       Print(*Blank);
        Print('***************************');
        Print('Relic Package Manager Started');
        Print(*Blank);
@@ -137,6 +138,7 @@
        
        Print(*Blank);
        Print('***************************');
+       Print(*Blank);
        
        Return;
 
