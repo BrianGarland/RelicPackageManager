@@ -9,7 +9,7 @@
        dcl-pr Cmd int(10) extproc('system');
          cmdstring pointer value options(*string);
        end-pr;
-       Dcl-s errmsgid char(7) import('_EXCP_MSGID');
+       Dcl-s errmsgid char(7)        import('_EXCP_MSGID');
 
        Dcl-Pr printf Int(10) ExtProc('printf');
          format Pointer Value Options(*String);
@@ -56,9 +56,10 @@
        Dcl-C gRepoZip  'REPO.ZIP';
        Dcl-S gUser     Char(10)     Inz(*User);
 
-       Dcl-S IFSLINK   Varchar(256); //Ending with /
+       Dcl-S IFSLINK   Varchar(256);
        Dcl-s INTOLIB   Char(10);
 
+       Dcl-S gMonMsg  Like(errmsgid) Dim(48);
        Dcl-S gSTMF  Ind;      //*On if output to streamfile
        Dcl-S gMode  Char(10); //Used for scanning build file
        Dcl-S gFails Int(3);
@@ -185,6 +186,7 @@
          Dcl-S lBuild   Varchar(CMD_LEN);
          Dcl-S lComment Ind;
          Dcl-S lComTxt  Char(2);
+         Dcl-S lMonMsg  Int(3);
 
          gPackage.Name = %Trim(pNewDir);
          gPackage.Ver  = '1';
@@ -286,6 +288,9 @@
              when (lBuild = 'licenses:');
                Print('License mode currently not supported.');
                gMode = '*LIC';
+               
+             When (lBuild = 'monmsg:');
+               gMode = '*MONMSG';
 
              When (lBuild = 'build:');
                gMode = '*BUILD';
@@ -297,6 +302,15 @@
 
                  When (gMode = '*VER');
                    gPackage.Ver = %Trim(lBuild);
+                   
+                 When (gMode = '*MONMSG');
+                   lMonMsg = %Lookup(*Blank:gMonMsg);
+               
+                   If (lMonMsg > 0);
+                     gMonMsg(lMonMsg) = lBuild
+                   Else;
+                     Print('Unable to monitor "' + lBuild + '". Max capaticy for monitors hit.');
+                   Endif;
 
                  When (gMode = '*BUILD');
                    BUILD_Command(lBuild);
@@ -328,15 +342,26 @@
 
          Monitor;
            If (Cmd(pCmd) = 1);
-             gFails += 1;
-             Print(%Subst(pCmd:1:52) + ' ...');
-             Print('> ' + errmsgid);
-             Print(*Blank);
+           
+             If (%Lookup(errmsgid:gMonMsg));
+               gFails += 1;
+               Print(*Blank);
+               Print('ERROR: '%TrimR(%Subst(pCmd:1:52)) + ' ...');
+               Print('> ' + errmsgid);
+               Print(*Blank);
+             Endif;
+           
+           Else;
+           
+             Print(%TrimR(%Subst(pCmd:1:24)) + ' ... successful.');
+           
            ENDIF;
          On-Error *All;
            gFails += 1;
+           Print(*Blank);
            Print(%Subst(pCmd:1:52) + ' ...');
-           Print('> Caused program crash');
+           Print( '> Caused program crash. See job log for '
+                + 'possible information.');
            Print(*Blank);
          Endmon;
        END-PROC;
