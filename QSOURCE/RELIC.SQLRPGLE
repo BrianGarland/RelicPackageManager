@@ -107,6 +107,10 @@
 
        gFails   = 0;
        
+       Print('***************************');
+       Print('Relic Package Manager Started');
+       Print(*Blank);
+       
        If (gSTMF);
          gSTMF = LOG_Prepare();
          If (gSTMF = *Off);
@@ -130,6 +134,9 @@
        If (gSTMF);
          LOG_Close();
        Endif;
+       
+       Print(*Blank);
+       Print('***************************');
        
        Return;
 
@@ -306,6 +313,7 @@
                  When (gMode = '*MONMSG');
                    lMonMsg = %Lookup(*Blank:gMonMsg);
                
+                   //If there is space, add it to the monmsg array list
                    If (lMonMsg > 0);
                      gMonMsg(lMonMsg) = lBuild;
                    Else;
