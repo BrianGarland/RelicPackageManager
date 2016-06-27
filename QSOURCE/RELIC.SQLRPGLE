@@ -344,10 +344,12 @@
          Monitor;
            If (Cmd(pCmd) = 1);
            
-             If (%Lookup(errmsgid:gMonMsg));
+             //If the error is not in the monmsg list
+             //then do display it
+             If (%Lookup(errmsgid:gMonMsg) = 0);
                gFails += 1;
                Print(*Blank);
-               Print('ERROR: '%TrimR(%Subst(pCmd:1:52)) + ' ...');
+               Print('ERROR: ' + %TrimR(%Subst(pCmd:1:52)) + ' ...');
                Print('> ' + errmsgid);
                Print(*Blank);
              Endif;
