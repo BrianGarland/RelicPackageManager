@@ -339,7 +339,7 @@
                    gPackage.Ver = %Trim(lBuild);
                    
                  When (gMode = '*MONMSG');
-                   lMonMsg = %Lookup(*Blank:gPackage.MonMsgs);
+                   lMonMsg = %Lookup(*Blank:gPackage.MonMsg);
                
                    //If there is space, add it to the monmsg array list
                    If (lMonMsg > 0);
