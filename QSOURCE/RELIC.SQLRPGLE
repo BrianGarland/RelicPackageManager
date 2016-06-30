@@ -59,14 +59,20 @@
        Dcl-S IFSLINK   Varchar(256);
        Dcl-s INTOLIB   Char(10);
 
-       Dcl-S gMonMsg  Like(errmsgid) Dim(48);
        Dcl-S gSTMF  Ind;      //*On if output to streamfile
        Dcl-S gMode  Char(10); //Used for scanning build file
        Dcl-S gFails Int(3);
+       
+       Dcl-Ds Vars_Template Template;
+         Key   Char(10);
+         Value Varchar(125);
+       End-Ds;
 
        Dcl-Ds gPackage Qualified;
-         Name Varchar(32);
-         Ver  Varchar(10);
+         Name   Varchar(32);
+         Ver    Varchar(10);
+         MonMsg Like(errmsgid)        Dim(48);
+         Vars   LikeDS(Vars_Template) Dim(20);
        End-Ds;
 
        //*********************************************
@@ -107,17 +113,20 @@
 
        gFails   = 0;
        
-       Print(*Blank);
-       Print('***************************');
-       Print('Relic Package Manager Started');
-       Print(*Blank);
-       
        If (gSTMF);
          gSTMF = LOG_Prepare();
          If (gSTMF = *Off);
            Print('Failed to create log with PLOG(*STMF).');
          Endif;
        Endif;
+       
+       Print(*Blank);
+       Print('***************************');
+       Print('Relic Package Manager Started');
+       Print(*Blank);
+       
+       BUILD_AddVar('&INTOLIB':INTOLIB);
+       BUILD_AddVar('&USER':gUser);
 
        If (BUILD_Prepare());
          If (gFails = 0);
@@ -146,7 +155,7 @@
 
        Dcl-Proc Print;
          Dcl-Pi Print;
-           pValue Char(128) Value;
+           pValue Char(512) Value;
          END-PI;
         
          pValue = %TrimR(pValue) + x'25';
@@ -196,6 +205,7 @@
          Dcl-S lComment Ind;
          Dcl-S lComTxt  Char(2);
          Dcl-S lMonMsg  Int(3);
+         Dcl-S lVarInd  Int(5);
 
          gPackage.Name = %Trim(pNewDir);
          gPackage.Ver  = '1';
@@ -226,6 +236,8 @@
          If (pNewDir <> *Blank);
            IFSLINK += %Trim(pNewDir) + '/';
          ENDIF;
+         
+         BUILD_AddVar('&DIR/':IFSLINK);
 
          //Process the build file
          gBuildFile.PathFile = IFSLINK + 'build.txt' + x'00';
@@ -281,6 +293,18 @@
            ENDIF;
 
            Select;
+           
+             When (%Subst(lBuild:1:1) = '&');
+               lVarInd = %Scan(':':lBuild);
+               If (lVarInd > 0);
+                 Monitor;
+                   BUILD_AddVar(%Subst(lBuild:1:lVarInd-1)
+                               :%Subst(lBuild:lVarInd+1));
+                 On-Error;
+                   Print( 'Failed to register "' 
+                        + %Subst(lBuild:1:lVarInd) + '"');
+                 Endmon;
+               Endif;
 
              When (lBuild = 'dirs:');
                Print('Directories directive not supported in build file.');
@@ -308,16 +332,18 @@
                Select;
                  When (gMode = '*NAME');
                    gPackage.Name = %Trim(lBuild);
+                   BUILD_AddVar('&NAME':gPackage.Name);
 
                  When (gMode = '*VER');
                    gPackage.Ver = %Trim(lBuild);
+                   BUILD_AddVar('&VER':gPackage.Ver);
                    
                  When (gMode = '*MONMSG');
-                   lMonMsg = %Lookup(*Blank:gMonMsg);
+                   lMonMsg = %Lookup(*Blank:gPackage.MonMsg);
                
                    //If there is space, add it to the monmsg array list
                    If (lMonMsg > 0);
-                     gMonMsg(lMonMsg) = lBuild;
+                     gPackage.MonMsg(lMonMsg) = lBuild;
                    Else;
                      Print( 'Unable to monitor "' + lBuild + '". Max capaticy '
                           + 'for monitors hit.');   
@@ -344,22 +370,36 @@
          Dcl-Pi *N;
            pCmd Char(CMD_LEN) Value;
          END-PI;
-
-         pCmd = %ScanRpl('&INTOLIB':%Trim(INTOLIB):pCmd);
-         pCmd = %ScanRpl('&DIR/':%Trim(IFSLINK):pCmd);
-         pCmd = %ScanRpl('&NAME':%Trim(gPackage.Name):pCmd);
-         pCmd = %ScanRpl('&VER':%Trim(gPackage.Ver):pCmd);
-         pCmd = %ScanRpl('&USER':%Trim(gUser):pCmd);
+         
+         Dcl-S lIndex Int(3);
+         Dcl-S lKey   Varchar(10);
+         
+         For lIndex = 1 to %Lookup(*Blank:gPackage.Vars(*).Key) - 1;
+         
+           //Trim it down
+           lKey = %TrimR(gPackage.Vars(lIndex).Key);
+         
+           //If the command contains a defined variable
+           If (%Scan(lKey:pCmd) > 0);
+           
+             //Replace the key with the value
+             pCmd = %ScanRpl(lKey
+                            :gPackage.Vars(lIndex).Value
+                            :pCmd);
+             
+           Endif;
+         Endfor;
 
          Monitor;
            If (Cmd(pCmd) = 1);
            
              //If the error is not in the monmsg list
              //then do display it
-             If (%Lookup(errmsgid:gMonMsg) = 0);
+             If (%Lookup(errmsgid:gPackage.MonMsg) = 0);
                gFails += 1;
                Print(*Blank);
-               Print('ERROR: ' + %TrimR(%Subst(pCmd:1:52)) + ' ...');
+               Print('ERROR: ');
+               Print('> ' + %TrimR(pCmd));
                Print('> ' + errmsgid);
                Print(*Blank);
              Endif;
@@ -378,6 +418,29 @@
            Print(*Blank);
          Endmon;
        END-PROC;
+
+       //*********************************************
+       
+       Dcl-Proc BUILD_AddVar;
+         Dcl-Pi *N;
+           pKey   Char(10)     Const;
+           pValue Varchar(128) Const;
+         End-Pi;
+         
+         Dcl-S lIndex Int(3);
+         
+         lIndex = %Lookup(pKey:gPackage.Vars(*).Key);
+         If (lIndex = 0);
+           lIndex = %Lookup(*Blank:gPackage.Vars(*).Key);
+         Endif;
+         
+         If (lIndex > 0);
+           gPackage.Vars(lIndex).Key   = pKey;
+           gPackage.Vars(lIndex).Value = %Trim(pValue);
+         Else;
+           Print('Failed to register "' + %Trim(pKey) + '"');
+         Endif;
+       End-Proc;
 
        //*********************************************
        
