@@ -113,17 +113,20 @@
 
        gFails   = 0;
        
-       Print(*Blank);
-       Print('***************************');
-       Print('Relic Package Manager Started');
-       Print(*Blank);
-       
        If (gSTMF);
          gSTMF = LOG_Prepare();
          If (gSTMF = *Off);
            Print('Failed to create log with PLOG(*STMF).');
          Endif;
        Endif;
+       
+       Print(*Blank);
+       Print('***************************');
+       Print('Relic Package Manager Started');
+       Print(*Blank);
+       
+       BUILD_AddVar('&INTOLIB':INTOLIB);
+       BUILD_AddVar('&USER':gUser);
 
        If (BUILD_Prepare());
          If (gFails = 0);
@@ -234,7 +237,7 @@
            IFSLINK += %Trim(pNewDir) + '/';
          ENDIF;
          
-         //Add the default variables
+         BUILD_AddVar('&DIR/':IFSLINK);
 
          //Process the build file
          gBuildFile.PathFile = IFSLINK + 'build.txt' + x'00';
@@ -295,7 +298,7 @@
                lVarInd = %Scan(':':lBuild);
                If (lVarInd > 0);
                  Monitor;
-                   BUILD_AddVar(%Subst(lBuild:1:lVarInd)
+                   BUILD_AddVar(%Subst(lBuild:1:lVarInd-1)
                                :%Subst(lBuild:lVarInd+1));
                  On-Error;
                    Print( 'Failed to register "' 
@@ -324,19 +327,16 @@
 
              When (lBuild = 'build:');
                gMode = '*BUILD';
-               BUILD_AddVar('&INTOLIB':INTOLIB);
-               BUILD_AddVar('&DIR/':IFSLINK);
-               BUILD_AddVar('&NAME':gPackage.Name);
-               BUILD_AddVar('&VER':gPackage.Ver);
-               BUILD_AddVar('&USER':gUser);
 
              Other;
                Select;
                  When (gMode = '*NAME');
                    gPackage.Name = %Trim(lBuild);
+                   BUILD_AddVar('&NAME':gPackage.Name);
 
                  When (gMode = '*VER');
                    gPackage.Ver = %Trim(lBuild);
+                   BUILD_AddVar('&VER':gPackage.Ver);
                    
                  When (gMode = '*MONMSG');
                    lMonMsg = %Lookup(*Blank:gPackage.MonMsg);
@@ -428,11 +428,16 @@
          
          Dcl-S lIndex Int(3);
          
-         lIndex = %Lookup(*Blank:gPackage.Vars(*).Key);
+         lIndex = %Lookup(pKey:gPackage.Vars(*).Key);
+         If (lIndex = 0);
+           lIndex = %Lookup(*Blank:gPackage.Vars(*).Key);
+         Endif;
          
          If (lIndex > 0);
            gPackage.Vars(lIndex).Key   = pKey;
            gPackage.Vars(lIndex).Value = %Trim(pValue);
+         Else;
+           Print('Failed to register "' + %Trim(pKey) + '"');
          Endif;
        End-Proc;
 
