@@ -64,7 +64,7 @@
        Dcl-S gFails Int(3);
        
        Dcl-Ds Vars_Template Template;
-         Key   Varchar(10);
+         Key   Char(10);
          Value Varchar(125);
        End-Ds;
 
@@ -372,14 +372,18 @@
          END-PI;
          
          Dcl-S lIndex Int(3);
+         Dcl-S lKey   Varchar(10);
          
-         For lIndex = 1 to (%Lookup(*Blank:gPackage.Vars(*).Key) - 1);
+         For lIndex = 1 to %Lookup(*Blank:gPackage.Vars(*).Key) - 1;
+         
+           //Trim it down
+           lKey = %TrimR(gPackage.Vars(lIndex).Key);
          
            //If the command contains a defined variable
-           If (%Scan(gPackage.Vars(lIndex).Key:pCmd) > 0);
+           If (%Scan(lKey:pCmd) > 0);
            
              //Replace the key with the value
-             pCmd = %ScanRpl(gPackage.Vars(lIndex).Key
+             pCmd = %ScanRpl(lKey
                             :gPackage.Vars(lIndex).Value
                             :pCmd);
              
@@ -427,7 +431,7 @@
          lIndex = %Lookup(*Blank:gPackage.Vars(*).Key);
          
          If (lIndex > 0);
-           gPackage.Vars(lIndex).Key   = %Trim(pKey);
+           gPackage.Vars(lIndex).Key   = pKey;
            gPackage.Vars(lIndex).Value = %Trim(pValue);
          Endif;
        End-Proc;
