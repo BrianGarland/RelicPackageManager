@@ -235,11 +235,6 @@
          ENDIF;
          
          //Add the default variables
-         BUILD_AddVar('&INTOLIB':INTOLIB);
-         BUILD_AddVar('&DIR/':IFSLINK);
-         BUILD_AddVar('&NAME':gPackage.Name);
-         BUILD_AddVar('&VER':gPackage.Ver);
-         BUILD_AddVar('&USER':gUser);
 
          //Process the build file
          gBuildFile.PathFile = IFSLINK + 'build.txt' + x'00';
@@ -329,6 +324,11 @@
 
              When (lBuild = 'build:');
                gMode = '*BUILD';
+               BUILD_AddVar('&INTOLIB':INTOLIB);
+               BUILD_AddVar('&DIR/':IFSLINK);
+               BUILD_AddVar('&NAME':gPackage.Name);
+               BUILD_AddVar('&VER':gPackage.Ver);
+               BUILD_AddVar('&USER':gUser);
 
              Other;
                Select;
