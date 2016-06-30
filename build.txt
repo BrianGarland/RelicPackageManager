@@ -4,7 +4,6 @@ version:
 	0.*
 build:
     &DEV:Liam Allan
-    &DEV:Club-Seiden RelicPackageManager
     
     CRTSRCPF FILE(&INTOLIB/QSOURCE) RCDLEN(112)
     CPYFRMSTMF FROMSTMF('&DIR/QSOURCE/RELIC.SQLRPGLE') TOMBR('/QSYS.lib/&INTOLIB.lib/QSOURCE.file/RELIC.mbr') MBROPT(*ADD)

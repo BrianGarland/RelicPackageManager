@@ -155,7 +155,7 @@
 
        Dcl-Proc Print;
          Dcl-Pi Print;
-           pValue Char(128) Value;
+           pValue Char(512) Value;
          END-PI;
         
          pValue = %TrimR(pValue) + x'25';
@@ -398,7 +398,8 @@
              If (%Lookup(errmsgid:gPackage.MonMsg) = 0);
                gFails += 1;
                Print(*Blank);
-               Print('ERROR: ' + %TrimR(%Subst(pCmd:1:52)) + ' ...');
+               Print('ERROR: ');
+               Print('> ' + %TrimR(pCmd));
                Print('> ' + errmsgid);
                Print(*Blank);
              Endif;
