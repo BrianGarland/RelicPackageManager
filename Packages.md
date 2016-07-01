@@ -6,10 +6,14 @@ Dynamic Arrays in RPG   RELICGET PLOC('https://github.com/RelicPackages/RPGDYNAR
 RPGMail                 RELICGET PLOC('https://github.com/RelicPackages/RPGMAIL/archive/master.zip') PDIR('RPGMAIL-master') PNAME('RPGMAIL')
 SEUEXIT                 RELICGET PLOC('https://github.com/starbuck5250/SEUEXIT/archive/master.zip') PDIR('SEUEXIT-master') PNAME('BUCK')
 Download files with DB2 RELICGET PLOC('https://github.com/WorksOfBarry/DB2GET/archive/master.zip') PDIR('DB2GET-master') PNAME(SOMELIB)
-Scott Klement's FTP API RELICGET PLOC('https://github.com/RelicPackages/FTPAPI/archive/master.zip') PDIR('FTPAPI-master') PNAME(SOMELIB)
-Scott K's HTTP API      RELICGET PLOC('https://github.com/RelicPackages/HTTPAPI/archive/master.zip') PDIR('HTTPAPI-master') PNAME(LIBHTTP)
 IBMi FTP Client         RELICGET PLOC('https://github.com/ChrisHird/FTPCLNT/archive/V1.0.0.1.zip') PDIR('FTPCLNT-1.0.0.1') PNAME(FTPCLNT)
 ZLIB (ZIP+UNZIP CMDs)   RELICGET PLOC('https://github.com/ChrisHird/ZLIB/archive/master.zip') PDIR('ZLIB-master') PNAME(ZLIBSRC)
 FTPCLNT                 RELICGET PLOC('https://github.com/ChrisHird/FTPCLNT/archive/V1.0.0.2.zip') PDIR('FTPCLNT-1.0.0.1') PNAME(FTPCLNT)
 BrianGarland/crtfrmstmf RELICGET PLOC('https://bitbucket.org/BrianGarland/crtfrmstmf/get/5b2d4cf7eafd.zip') PDIR('BrianGarland-crtfrmstmf-5b2d4cf7eafd') PNAME('SOMELIB')
+```
+
+Not tested:
+```
+Scott Klement's FTP API RELICGET PLOC('https://github.com/RelicPackages/FTPAPI/archive/master.zip') PDIR('FTPAPI-master') PNAME(SOMELIB)
+Scott K's HTTP API      RELICGET PLOC('https://github.com/RelicPackages/HTTPAPI/archive/master.zip') PDIR('HTTPAPI-master') PNAME(LIBHTTP)
 ```
