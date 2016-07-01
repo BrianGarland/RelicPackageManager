@@ -141,13 +141,13 @@
          ENDIF;
        Endif;
        
-       If (gSTMF);
-         LOG_Close();
-       Endif;
-       
        Print(*Blank);
        Print('***************************');
        Print(*Blank);
+       
+       If (gSTMF);
+         LOG_Close();
+       Endif;
        
        Return;
 
