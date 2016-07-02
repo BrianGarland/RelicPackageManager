@@ -267,6 +267,7 @@
            gBuildFile.RtvData = %xlate(x'0D':' ':gBuildFile.RtvData);//Carriage return (CR)
            gBuildFile.RtvData = %xlate(x'05':' ':gBuildFile.RtvData);//Tab
            lBuild = %Trim(gBuildFile.RtvData);
+           gBuildFile.RtvData = *Blank;
 
            If (lBuild = *Blank);
              Iter;
