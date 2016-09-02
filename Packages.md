@@ -10,6 +10,7 @@ IBMi FTP Client         RELICGET PLOC('https://github.com/ChrisHird/FTPCLNT/arch
 ZLIB (ZIP+UNZIP CMDs)   RELICGET PLOC('https://github.com/ChrisHird/ZLIB/archive/master.zip') PDIR('ZLIB-master') PNAME(ZLIBSRC)
 FTPCLNT                 RELICGET PLOC('https://github.com/ChrisHird/FTPCLNT/archive/V1.0.0.2.zip') PDIR('FTPCLNT-1.0.0.1') PNAME(FTPCLNT)
 BrianGarland/crtfrmstmf RELICGET PLOC('https://bitbucket.org/BrianGarland/crtfrmstmf/get/5b2d4cf7eafd.zip') PDIR('BrianGarland-crtfrmstmf-5b2d4cf7eafd') PNAME('SOMELIB')
+TOP Language            RELICGET PLOC('https://github.com/OSSILE/TOP/archive/master.zip') PDIR('TOP-master') PNAME(PALANGCMP)
 ```
 
 Not tested:
