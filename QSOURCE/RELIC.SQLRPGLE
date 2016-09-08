@@ -132,7 +132,6 @@
          Else;
            Print('Attempted to build..');
            Print(' > error count: ' + %Char(gFails));
-           Print(' > directory not deleted');
          ENDIF;
        Endif;
 
@@ -154,8 +153,13 @@
          END-PI;
 
          If (gSPLL);
+         
            gLineOut = pValue;
+           If (gLineOut = *Blank);
+             gLineOut = '.';
+           Endif;
            Write QsysPrt gLineOut;
+           
          Else;
            pValue = %TrimR(pValue) + x'25';
            printf(%Trim(pValue));
