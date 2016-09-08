@@ -11,4 +11,4 @@
                           build-only?') MIN(0) RSTD(*yes) DFT(*FETCH) +
                           VALUES(*FETCH *BUILDONLY)
              PARM       KWD(PLOG) TYPE(*char) LEN(10) PROMPT('Logging') +
-                          MIN(0) RSTD(*yes) DFT(*DSP) VALUES(*DSP *STMF) 
+                          MIN(0) RSTD(*yes) DFT(*DSP) VALUES(*DSP *SPOOL) 
