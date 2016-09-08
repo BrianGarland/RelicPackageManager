@@ -31,3 +31,27 @@ INSERT INTO #RELIC/PKGLIST VALUES(
   'https://github.com/RelicPackages/RPGDYNARR/archive/master.zip',                 
   'RPGDYNARR-master'
 );
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  4, 
+  'RPGMail',
+  'by Aaron Bartell', 
+  'https://github.com/RelicPackages/RPGMAIL/archive/master.zip',                 
+  'RPGMAIL-master'
+);
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  5, 
+  'SEUEXIT',
+  'SEU Exit program', 
+  'https://github.com/starbuck5250/SEUEXIT/archive/master.zip',                 
+  'SEUEXIT-master'
+);
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  6, 
+  'DB2GET',
+  'Download files with DB2', 
+  'https://github.com/WorksOfBarry/DB2GET/archive/master.zip',                 
+  'DB2GET-master'
+);
