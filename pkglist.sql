@@ -55,3 +55,54 @@ INSERT INTO #RELIC/PKGLIST VALUES(
   'https://github.com/WorksOfBarry/DB2GET/archive/master.zip',                 
   'DB2GET-master'
 );
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  7, 
+  'FTPClient',
+  'IBM i FTP Client', 
+  'https://github.com/ChrisHird/FTPCLNT/archive/V1.0.0.2.zip',
+  'FTPCLNT-1.0.0.2'
+);
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  8, 
+  'ZLIB',
+  'ZIP + UNZIP Commands', 
+  'https://github.com/ChrisHird/ZLIB/archive/master.zip',
+  'ZLIB-master'
+);
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  9, 
+  'crtfrmstmf',
+  'Create from Stream File', 
+  'https://bitbucket.org/BrianGarland/crtfrmstmf/get/5b2d4cf7eafd.zip',
+  'BrianGarland-crtfrmstmf-5b2d4cf7eafd'
+);
+
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  10, 
+  'TOP',
+  'Language and VM', 
+  'https://github.com/OSSILE/TOP/archive/master.zip',
+  'TOP-master'
+);
+
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  11, 
+  'FTPAPI',
+  'scottklement.com', 
+  'https://github.com/RelicPackages/FTPAPI/archive/master.zip',
+  'FTPAPI-master'
+);
+
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  11, 
+  'HTTPAPI',
+  'scottklement.com', 
+  'https://github.com/RelicPackages/HTTPAPI/archive/master.zip',
+  'HTTPAPI-master'
+);
