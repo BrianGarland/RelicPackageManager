@@ -1,0 +1,60 @@
+     A          R LSTPKG                    CA12(12)
+     A                                      ROLLUP(66)
+     A                                      ROLLDOWN(44)
+     A                                      CA06(06)
+     A            NAME1         20   O  8 21
+     A            NAME2         20      9 21
+     A            NAME3         20     10 21
+     A            NAME4         20     11 21
+     A            NAME5         20     12 21
+     A            NAME6         20     13 21
+     A            NAME7         20     14 21
+     A            NAME8         20     15 21
+     A            NAME9         20     16 21
+     A            NAME10        20     17 21
+     A            ENT1           2D  B  8 18COLOR(WHT)
+     A            ENT2           2D  B  9 18COLOR(WHT)
+     A            ENT3           2D  B 10 18COLOR(WHT)
+     A            ENT4           2D  B 11 18COLOR(WHT)
+     A            ENT5           2D  B 12 18COLOR(WHT)
+     A            ENT6           2D  B 13 18COLOR(WHT)
+     A            ENT7           2D  B 14 18COLOR(WHT)
+     A            ENT8           2D  B 15 18COLOR(WHT)
+     A            ENT9           2D  B 16 18COLOR(WHT)
+     A            ENT10          2D  B 17 18COLOR(WHT)
+     A                                  3 30'Relic Package Manager'
+     A                                      COLOR(RED)
+     A            FIELD          9   H
+     A            DEV1          25   O  8 42
+     A            DEV2          25      9 42
+     A            DEV3          25     10 42
+     A            DEV4          25     11 42
+     A            DEV5          25     12 42
+     A            DEV6          25     13 42
+     A            DEV7          25     14 42
+     A            DEV8          25     15 42
+     A            DEV9          25     16 42
+     A            DEV10         25     17 42
+     A                                  7 21'Package name'
+     A                                      COLOR(WHT)
+     A                                  7 42'Description'
+     A                                      COLOR(WHT)
+     A                                 21 11'F6 = Update, F12 = Exit'
+     A                                      COLOR(BLU)
+     A            LOADED         2   O  7 18COLOR(WHT)
+     A            SEARCH        20   B  5 21
+     A                                  5 19'>'
+     A                                 20 11'11 = Install'
+     A                                      COLOR(BLU)
+     A          R INSTALL                   WINDOW(8 39 9 34)
+     A                                      CA12(12)
+     A                                  2 16'Install Package'
+     A                                      COLOR(RED)
+     A            PKGNAME       20   O  3  5COLOR(WHT)
+     A                                  5  5'Into library..'
+     A                                  6  7'Print mode..'
+     A            INTOLIB       10   B  5 21
+     A            PRINTMODE     10   B  6 21
+     A                                  8  3'Enter to continue, F12 to exit'
+     A                                      COLOR(BLU)
+ 

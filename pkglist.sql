@@ -100,7 +100,7 @@ INSERT INTO #RELIC/PKGLIST VALUES(
 
 
 INSERT INTO #RELIC/PKGLIST VALUES(
-  11, 
+  12, 
   'HTTPAPI',
   'scottklement.com', 
   'https://github.com/RelicPackages/HTTPAPI/archive/master.zip',
