@@ -1,17 +1,20 @@
-             PGM        PARM(&SRCLIB &OBJLIB &TGTRLS)
-             DCL        VAR(&SRCLIB) TYPE(*CHAR) LEN(10)
+
+             PGM        PARM(&OBJLIB)
              DCL        VAR(&OBJLIB) TYPE(*CHAR) LEN(10)
-             DCL        VAR(&TGTRLS) TYPE(*CHAR) LEN(10)
 
              /* check the object lib exists, if not create */
 
              CHKOBJ     OBJ(&OBJLIB) OBJTYPE(*LIB)
              MONMSG     MSGID(CPF9801) EXEC(CRTLIB LIB(&OBJLIB))
 
-             CRTSQLRPGI OBJ(&OBJLIB/RELIC) SRCFILE(&SRCLIB/QSOURCE) SRCMBR(RELIC) +
+             CRTSQLRPGI OBJ(&OBJLIB/RELIC) SRCFILE(&OBJLIB/QSOURCE) SRCMBR(RELIC) +
                           REPLACE(*YES) COMMIT(*NONE) TEXT('')
-             CRTCMD     CMD(&OBJLIB/RELICGET) PGM(&OBJLIB/RELIC) SRCFILE(&SRCLIB/QSOURCE) +
+             CRTCMD     CMD(&OBJLIB/RELICGET) PGM(&OBJLIB/RELIC) SRCFILE(&OBJLIB/QSOURCE) +
                           SRCMBR(RELICGET) REPLACE(*YES) TEXT('')
 
-             ENDPGM
+             CALL       RELIC +
+                          PARM('https://github.com/OSSILE/RelicPackageManager/archive/master.zip+
+                          ' 'RelicPackageManager-master' &OBJLIB '*FETCH' '*SPOOL')
 
+             ENDPGM
+ 
