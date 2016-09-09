@@ -126,9 +126,9 @@
        If (BUILD_Prepare());
          If (gFails = 0);
            Print('Built from ' + %Trim(pZIPLoc) + ' sucessfully.');
-           If (pFetchOption <> '*BUILDONLY');
-             BUILD_Command('RMDIR DIR(''' + IFSLINK + ''') SUBTREE(*ALL)');
-           Endif;
+           //If (pFetchOption <> '*BUILDONLY');
+           //  BUILD_Command('RMDIR DIR(''' + IFSLINK + ''') SUBTREE(*ALL)');
+           //Endif;
          Else;
            Print('Attempted to build..');
            Print(' > error count: ' + %Char(gFails));
