@@ -106,3 +106,12 @@ INSERT INTO #RELIC/PKGLIST VALUES(
   'https://github.com/RelicPackages/HTTPAPI/archive/master.zip',
   'HTTPAPI-master'
 );
+
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  13, 
+  'CRTMIPGM',
+  'Create MI Program', 
+  'https://github.com/WorksOfBarry/CRTMIPGM/archive/master.zip',
+  'CRTMIPGM-master'
+);
