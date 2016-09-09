@@ -9,8 +9,6 @@
 
              CRTSQLRPGI OBJ(&OBJLIB/RELIC) SRCFILE(&OBJLIB/QSOURCE) SRCMBR(RELIC) +
                           REPLACE(*YES) COMMIT(*NONE) TEXT('')
-             CRTCMD     CMD(&OBJLIB/RELICGET) PGM(&OBJLIB/RELIC) SRCFILE(&OBJLIB/QSOURCE) +
-                          SRCMBR(RELICGET) REPLACE(*YES) TEXT('')
 
              CALL       RELIC +
                           PARM('https://github.com/OSSILE/RelicPackageManager/archive/master.zip+
