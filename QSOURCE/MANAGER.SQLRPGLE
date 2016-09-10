@@ -76,7 +76,9 @@
                     + 'PKG_LINK, '
                     + 'PKG_FLDNAME '
                   + 'FROM '
-                  + '#RELIC/PKGLIST';
+                    + '#RELIC/PKGLIST '
+                  + 'ORDER BY '
+                    + 'PKG_ID DESC';
          Else;
            pName  = %ScanRpl('''':'''''':pName);
            lQuery = 'SELECT '
