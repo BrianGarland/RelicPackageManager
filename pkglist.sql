@@ -143,3 +143,11 @@ INSERT INTO #RELIC/PKGLIST VALUES(
   'https://github.com/RelicPackages/base64/archive/master.zip',
   'base64-master'
 );
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  18, 
+  'DoCmd',
+  '1 command, multiple objs', 
+  'https://github.com/RelicPackages/docmd/archive/master.zip',
+  'docmd-master'
+);
