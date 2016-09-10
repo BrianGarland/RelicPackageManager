@@ -12,8 +12,8 @@
        Dcl-S  gForceDL  Ind;
        Dcl-S  gPkgCount Int(5) Inz(10);
        Dcl-Ds gPackages Qualified Dim(50);
-         Name   Char(20);
-         Desc   Char(25);
+         Name   Char(32);
+         Desc   Char(64);
          Link   Char(128);
          Folder Char(64);
        END-DS;
@@ -244,6 +244,9 @@
          Dcl-S lExit Ind Inz(*Off);
 
          PKGNAME   = gPackages(pIndex).Name;
+         PKGDESC1  = %Subst(gPackages(pIndex).Desc:1:26);
+         PKGDESC2  = %Subst(gPackages(pIndex).Desc:27:26);
+
          INTOLIB   = 'QTEMP';
          PRINTMODE = '*DSP';
 
