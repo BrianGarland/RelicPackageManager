@@ -125,12 +125,9 @@
 
        If (BUILD_Prepare());
          If (gFails = 0);
-           Print('Built from ' + %Trim(pZIPLoc) + ' sucessfully.');
-           If (pFetchOption <> '*BUILDONLY');
-             BUILD_Command('RMDIR DIR(''' + IFSLINK + ''') SUBTREE(*ALL)');
-           Endif;
+           Print('Built ' + %Trim(gPackage.Name) + ' sucessfully.');
          Else;
-           Print('Attempted to build..');
+           Print('Attempted to build ' + gPackage.Name + '..');
            Print(' > error count: ' + %Char(gFails));
          ENDIF;
        Endif;
@@ -153,13 +150,11 @@
          END-PI;
 
          If (gSPLL);
-         
            gLineOut = pValue;
            If (gLineOut = *Blank);
              gLineOut = '.';
            Endif;
            Write QsysPrt gLineOut;
-           
          Else;
            pValue = %TrimR(pValue) + x'25';
            printf(%Trim(pValue));
