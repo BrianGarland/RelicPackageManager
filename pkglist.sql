@@ -74,12 +74,11 @@ INSERT INTO #RELIC/PKGLIST VALUES(
 
 INSERT INTO #RELIC/PKGLIST VALUES(
   9, 
-  'crtfrmstmf',
+  'CRTFRMSTMF',
   'Create from Stream File', 
   'https://bitbucket.org/BrianGarland/crtfrmstmf/get/5b2d4cf7eafd.zip',
   'BrianGarland-crtfrmstmf-5b2d4cf7eafd'
 );
-
 
 INSERT INTO #RELIC/PKGLIST VALUES(
   10, 
@@ -89,7 +88,6 @@ INSERT INTO #RELIC/PKGLIST VALUES(
   'TOP-master'
 );
 
-
 INSERT INTO #RELIC/PKGLIST VALUES(
   11, 
   'FTPAPI',
@@ -98,11 +96,50 @@ INSERT INTO #RELIC/PKGLIST VALUES(
   'FTPAPI-master'
 );
 
-
 INSERT INTO #RELIC/PKGLIST VALUES(
   12, 
   'HTTPAPI',
   'scottklement.com', 
   'https://github.com/RelicPackages/HTTPAPI/archive/master.zip',
   'HTTPAPI-master'
+);
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  13, 
+  'CRTMIPGM',
+  'Create MI Program', 
+  'https://github.com/WorksOfBarry/CRTMIPGM/archive/master.zip',
+  'CRTMIPGM-master'
+);
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  14, 
+  'LSTFFD',
+  'bvstools.com', 
+  'https://bitbucket.org/WorksOfBarry/lstffd/get/7ca08d0f5792.zip',
+  'WorksOfBarry-lstffd-7ca08d0f5792'
+);
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  15, 
+  'iOpen Tools',
+  'sqliquery.com', 
+  'https://github.com/WorksOfBarry/iopen/archive/master.zip',
+  'iopen-master'
+);
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  16, 
+  'SCNMSGF',
+  'Scan Message File', 
+  'https://bitbucket.org/WorksOfBarry/scnmsgf/get/3af09424648f.zip',
+  'WorksOfBarry-scnmsgf-3af09424648f'
+);
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  17, 
+  'base64',
+  'scottklement.com', 
+  'https://github.com/RelicPackages/base64/archive/master.zip',
+  'base64-master'
 );
