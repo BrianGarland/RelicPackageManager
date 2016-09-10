@@ -119,3 +119,12 @@ INSERT INTO #RELIC/PKGLIST VALUES(
   'https://bitbucket.org/WorksOfBarry/lstffd/get/7ca08d0f5792.zip',
   'WorksOfBarry-lstffd-7ca08d0f5792'
 );
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  15, 
+  'iOpen Tools',
+  'sqliquery.com', 
+  'https://github.com/WorksOfBarry/iopen/archive/master.zip',
+  'iopen-master'
+);
+
