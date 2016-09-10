@@ -135,3 +135,11 @@ INSERT INTO #RELIC/PKGLIST VALUES(
   'https://bitbucket.org/WorksOfBarry/scnmsgf/get/3af09424648f.zip',
   'WorksOfBarry-scnmsgf-3af09424648f'
 );
+
+INSERT INTO #RELIC/PKGLIST VALUES(
+  17, 
+  'base64',
+  'scottklement.com', 
+  'https://github.com/RelicPackages/base64/archive/master.zip',
+  'base64-master'
+);
