@@ -74,7 +74,7 @@ INSERT INTO #RELIC/PKGLIST VALUES(
 
 INSERT INTO #RELIC/PKGLIST VALUES(
   9, 
-  'crtfrmstmf',
+  'CRTFRMSTMF',
   'Create from Stream File', 
   'https://bitbucket.org/BrianGarland/crtfrmstmf/get/5b2d4cf7eafd.zip',
   'BrianGarland-crtfrmstmf-5b2d4cf7eafd'
@@ -128,3 +128,10 @@ INSERT INTO #RELIC/PKGLIST VALUES(
   'iopen-master'
 );
 
+INSERT INTO #RELIC/PKGLIST VALUES(
+  16, 
+  'SCNMSGF',
+  'Scan Message File', 
+  'https://bitbucket.org/WorksOfBarry/scnmsgf/get/3af09424648f.zip',
+  'WorksOfBarry-scnmsgf-3af09424648f'
+);
