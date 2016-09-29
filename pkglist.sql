@@ -84,8 +84,8 @@ INSERT INTO #RELIC/PKGLIST VALUES(
   10, 
   'TOP',
   'Language and VM', 
-  'https://github.com/OSSILE/TOP/archive/master.zip',
-  'TOP-master'
+  'https://github.com/OSSILE/TOP/archive/0.0.1.zip',
+  'TOP-0.0.1'
 );
 
 INSERT INTO #RELIC/PKGLIST VALUES(
