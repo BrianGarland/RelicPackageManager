@@ -77,7 +77,7 @@
 
        Dcl-Pi RELIC;
          pZIPLoc      Char(128) Const;
-         pNewDir      Char(50)  Const;
+         pNewDir      Char(128) Const;
          pLib         Char(10)  Const;
          pFetchOption Char(10)  Const;
          pLogOption   Char(10)  Const; //*DSP, *SPOOL
@@ -444,4 +444,4 @@
 
        Dcl-Proc LOG_Close;
          Close QsysPrt;
-       End-Proc; 
+       End-Proc;
