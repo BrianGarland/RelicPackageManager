@@ -9,7 +9,7 @@
        dcl-pr Cmd int(10) extproc('system');
          cmdstring pointer value options(*string);
        end-pr;
-       Dcl-s errmsgid char(7) import('_EXCP_MSGID');
+       Dcl-s errmsgid char(7)        import('_EXCP_MSGID');
 
        Dcl-Pr printf Int(10) ExtProc('printf');
          format Pointer Value Options(*String);
@@ -27,55 +27,60 @@
          *n int(10) value;  //Data size
          *n pointer value;  //Misc pointer
        end-pr;
-       
-       dcl-pr WriteFile pointer extproc('_C_IFS_fwrite');
-         *n pointer value;  //Write data
-         *n int(10) value;  //Data size
-         *n int(10) value;  //Block size
-         *n pointer value;  //Misc pointer
-       end-pr;
 
        dcl-pr CloseFile extproc('_C_IFS_fclose');
          *n pointer value;  //Misc pointer
        end-pr;
 
        Dcl-C CMD_LEN 300;
-    
+
        Dcl-Ds File_Temp Qualified Template;
          PathFile char(CMD_LEN);
          RtvData char(CMD_LEN);
          OpenMode char(5);
          FilePtr pointer inz;
        End-ds;
-       
+
        Dcl-Ds gBuildFile  LikeDS(File_Temp);
-       Dcl-Ds gStreamFile LikeDS(File_Temp);
+
+       //This is used for writing to a spool file
+       Dcl-F  QsysPrt     Printer(132) UsrOpn;
+       Dcl-DS gLineOut;   //Used for the printer
+         Line Char(132);
+       END-DS;
 
        //*********************************************
 
        Dcl-C gRepoZip  'REPO.ZIP';
        Dcl-S gUser     Char(10)     Inz(*User);
 
-       Dcl-S IFSLINK   Varchar(256); //Ending with /
+       Dcl-S IFSLINK   Varchar(256);
        Dcl-s INTOLIB   Char(10);
 
-       Dcl-S gSTMF  Ind;      //*On if output to streamfile
+       Dcl-S gSPLL  Ind;      //*On if output to streamfile
        Dcl-S gMode  Char(10); //Used for scanning build file
        Dcl-S gFails Int(3);
 
+       Dcl-Ds Vars_Template Template;
+         Key   Char(10);
+         Value Varchar(125);
+       End-Ds;
+
        Dcl-Ds gPackage Qualified;
-         Name Varchar(32);
-         Ver  Varchar(10);
+         Name   Varchar(32);
+         Ver    Varchar(10);
+         MonMsg Like(errmsgid)        Dim(48);
+         Vars   LikeDS(Vars_Template) Dim(20);
        End-Ds;
 
        //*********************************************
 
        Dcl-Pi RELIC;
          pZIPLoc      Char(128) Const;
-         pNewDir      Char(50)  Const;
+         pNewDir      Char(128) Const;
          pLib         Char(10)  Const;
          pFetchOption Char(10)  Const;
-         pLogOption   Char(10)  Const; //*DSP, *STMF
+         pLogOption   Char(10)  Const; //*DSP, *SPOOL
        END-PI;
 
        *InLR = *On;
@@ -84,20 +89,20 @@
          Print('Five parameters required.');
          Return;
        ENDIF;
-        
+
        If (pFetchOption = '*FETCH');
          If (pZIPLoc = *Blank);
            Print('Location cannot be blank with *FETCH mode.');
            Return;
          Endif;
        Endif;
-       
+
        If (pLib = *Blank);
          Print('Library cannot be blank.');
          Return;
        ENDIF;
-       
-       gSTMF = (pLogOption = '*STMF');
+
+       gSPLL = (pLogOption = '*SPOOL');
 
        //*********************************************
 
@@ -105,51 +110,56 @@
        IFSLINK  = '';
 
        gFails   = 0;
-       
-       If (gSTMF);
-         gSTMF = LOG_Prepare();
-         If (gSTMF = *Off);
-           Print('Failed to create log with PLOG(*STMF).');
-         Endif;
+
+       If (gSPLL);
+         LOG_Prepare();
        Endif;
+
+       Print(*Blank);
+       Print('***************************');
+       Print('Relic Package Manager Started');
+       Print(*Blank);
+
+       BUILD_AddVar('&INTOLIB':INTOLIB);
+       BUILD_AddVar('&USER':gUser);
 
        If (BUILD_Prepare());
          If (gFails = 0);
-           Print('Built from ' + %Trim(pZIPLoc) + ' sucessfully.');
-           If (pFetchOption <> '*BUILDONLY');
-             BUILD_Command('RMDIR DIR(''' + IFSLINK + ''') SUBTREE(*ALL)');
-           Endif;
+           Print('Built ' + %Trim(gPackage.Name) + ' sucessfully.');
          Else;
-           Print('Attempted to build..');
+           Print('Attempted to build ' + gPackage.Name + '..');
            Print(' > error count: ' + %Char(gFails));
-           Print(' > directory not deleted');
          ENDIF;
        Endif;
-       
-       If (gSTMF);
+
+       Print(*Blank);
+       Print('***************************');
+       Print(*Blank);
+
+       If (gSPLL);
          LOG_Close();
        Endif;
-       
+
        Return;
 
        //*********************************************
 
        Dcl-Proc Print;
          Dcl-Pi Print;
-           pValue Char(128) Value;
+           pValue Char(132) Value;
          END-PI;
-        
-         pValue = %TrimR(pValue) + x'25';
-         
-         If (gSTMF);
-           WriteFile(%Addr(pValue)
-                    :%Len(%TrimR(pValue))
-                    :1
-                    :gStreamFile.FilePtr);
+
+         If (gSPLL);
+           gLineOut = pValue;
+           If (gLineOut = *Blank);
+             gLineOut = '.';
+           Endif;
+           Write QsysPrt gLineOut;
          Else;
+           pValue = %TrimR(pValue) + x'25';
            printf(%Trim(pValue));
          Endif;
-         
+
        End-Proc;
 
        //*********************************************
@@ -185,6 +195,8 @@
          Dcl-S lBuild   Varchar(CMD_LEN);
          Dcl-S lComment Ind;
          Dcl-S lComTxt  Char(2);
+         Dcl-S lMonMsg  Int(3);
+         Dcl-S lVarInd  Int(5);
 
          gPackage.Name = %Trim(pNewDir);
          gPackage.Ver  = '1';
@@ -216,6 +228,8 @@
            IFSLINK += %Trim(pNewDir) + '/';
          ENDIF;
 
+         BUILD_AddVar('&DIR/':IFSLINK);
+
          //Process the build file
          gBuildFile.PathFile = IFSLINK + 'build.txt' + x'00';
          gBuildFile.OpenMode = 'r' + x'00';
@@ -233,7 +247,7 @@
          dow  (ReadFile(%addr(gBuildFile.RtvData)
                        :%Len(gBuildFile.RtvData)
                        :gBuildFile.FilePtr) <> *null);
-                       
+
            gBuildFile.RtvData = %Trim(gBuildFile.RtvData);
            If (%Subst(gBuildFile.RtvData:1:1) = x'25');
              Iter;
@@ -244,6 +258,7 @@
            gBuildFile.RtvData = %xlate(x'0D':' ':gBuildFile.RtvData);//Carriage return (CR)
            gBuildFile.RtvData = %xlate(x'05':' ':gBuildFile.RtvData);//Tab
            lBuild = %Trim(gBuildFile.RtvData);
+           gBuildFile.RtvData = *Blank;
 
            If (lBuild = *Blank);
              Iter;
@@ -271,6 +286,18 @@
 
            Select;
 
+             When (%Subst(lBuild:1:1) = '&');
+               lVarInd = %Scan(':':lBuild);
+               If (lVarInd > 0);
+                 Monitor;
+                   BUILD_AddVar(%Subst(lBuild:1:lVarInd-1)
+                               :%Subst(lBuild:lVarInd+1));
+                 On-Error;
+                   Print( 'Failed to register "'
+                        + %Subst(lBuild:1:lVarInd) + '"');
+                 Endmon;
+               Endif;
+
              When (lBuild = 'dirs:');
                Print('Directories directive not supported in build file.');
 
@@ -287,6 +314,9 @@
                Print('License mode currently not supported.');
                gMode = '*LIC';
 
+             When (lBuild = 'monmsg:');
+               gMode = '*MONMSG';
+
              When (lBuild = 'build:');
                gMode = '*BUILD';
 
@@ -294,9 +324,22 @@
                Select;
                  When (gMode = '*NAME');
                    gPackage.Name = %Trim(lBuild);
+                   BUILD_AddVar('&NAME':gPackage.Name);
 
                  When (gMode = '*VER');
                    gPackage.Ver = %Trim(lBuild);
+                   BUILD_AddVar('&VER':gPackage.Ver);
+
+                 When (gMode = '*MONMSG');
+                   lMonMsg = %Lookup(*Blank:gPackage.MonMsg);
+
+                   //If there is space, add it to the monmsg array list
+                   If (lMonMsg > 0);
+                     gPackage.MonMsg(lMonMsg) = lBuild;
+                   Else;
+                     Print( 'Unable to monitor "' + lBuild + '". Max capaticy '
+                          + 'for monitors hit.');
+                   Endif;
 
                  When (gMode = '*BUILD');
                    BUILD_Command(lBuild);
@@ -320,42 +363,85 @@
            pCmd Char(CMD_LEN) Value;
          END-PI;
 
-         pCmd = %ScanRpl('&INTOLIB':%Trim(INTOLIB):pCmd);
-         pCmd = %ScanRpl('&DIR/':%Trim(IFSLINK):pCmd);
-         pCmd = %ScanRpl('&NAME':%Trim(gPackage.Name):pCmd);
-         pCmd = %ScanRpl('&VER':%Trim(gPackage.Ver):pCmd);
-         pCmd = %ScanRpl('&USER':%Trim(gUser):pCmd);
+         Dcl-S lIndex Int(3);
+         Dcl-S lKey   Varchar(10);
+
+         For lIndex = 1 to %Lookup(*Blank:gPackage.Vars(*).Key) - 1;
+
+           //Trim it down
+           lKey = %TrimR(gPackage.Vars(lIndex).Key);
+
+           //If the command contains a defined variable
+           If (%Scan(lKey:pCmd) > 0);
+
+             //Replace the key with the value
+             pCmd = %ScanRpl(lKey
+                            :gPackage.Vars(lIndex).Value
+                            :pCmd);
+
+           Endif;
+         Endfor;
 
          Monitor;
            If (Cmd(pCmd) = 1);
-             gFails += 1;
-             Print(%Subst(pCmd:1:52) + ' ...');
-             Print('> ' + errmsgid);
-             Print(*Blank);
+
+             //If the error is not in the monmsg list
+             //then do display it
+             If (%Lookup(errmsgid:gPackage.MonMsg) = 0);
+               gFails += 1;
+               Print(*Blank);
+               Print('ERROR: ');
+               Print('> ' + %TrimR(pCmd));
+               Print('> ' + errmsgid);
+               Print(*Blank);
+             Endif;
+
+           Else;
+
+             Print(%TrimR(%Subst(pCmd:1:24)) + ' ... successful.');
+
            ENDIF;
          On-Error *All;
            gFails += 1;
+           Print(*Blank);
            Print(%Subst(pCmd:1:52) + ' ...');
-           Print('> Caused program crash');
+           Print( '> Caused program crash. See job log for '
+                + 'possible information.');
            Print(*Blank);
          Endmon;
        END-PROC;
 
        //*********************************************
-       
-       Dcl-Proc LOG_Prepare;
-         Dcl-Pi *N Ind End-Pi;
-         gStreamFile.PathFile = IFSLINK + %char(%timestamp) + x'00';
-         gStreamFile.OpenMode = 'ab' + x'00';
-         gStreamFile.FilePtr  = OpenFile(%addr(gStreamFile.PathFile)
-                                        :%addr(gStreamFile.OpenMode));
-                                        
-         Return (gStreamFile.FilePtr <> *null);
-         //Returns *on if it failed to open
+
+       Dcl-Proc BUILD_AddVar;
+         Dcl-Pi *N;
+           pKey   Char(10)     Const;
+           pValue Varchar(128) Const;
+         End-Pi;
+
+         Dcl-S lIndex Int(3);
+
+         lIndex = %Lookup(pKey:gPackage.Vars(*).Key);
+         If (lIndex = 0);
+           lIndex = %Lookup(*Blank:gPackage.Vars(*).Key);
+         Endif;
+
+         If (lIndex > 0);
+           gPackage.Vars(lIndex).Key   = pKey;
+           gPackage.Vars(lIndex).Value = %Trim(pValue);
+         Else;
+           Print('Failed to register "' + %Trim(pKey) + '"');
+         Endif;
        End-Proc;
 
        //*********************************************
-       
+
+       Dcl-Proc LOG_Prepare;
+         Open QsysPrt;
+       End-Proc;
+
+       //*********************************************
+
        Dcl-Proc LOG_Close;
-         CloseFile(gStreamFile.FilePtr);
+         Close QsysPrt;
        End-Proc;
