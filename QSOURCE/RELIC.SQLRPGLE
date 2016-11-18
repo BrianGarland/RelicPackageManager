@@ -59,6 +59,8 @@
 
        Dcl-S gSPLL  Ind;      //*On if output to streamfile
        Dcl-S gMode  Char(10); //Used for scanning build file
+
+       Dcl-S gLine  Int(5); //Current build file line
        Dcl-S gFails Int(3);
 
        Dcl-Ds Vars_Template Template;
@@ -217,7 +219,7 @@
              BUILD_Command('QSH CMD(''jar xf ' + IFSLINK + gRepoZip + ''')');
              BUILD_Command('RMVLNK OBJLNK(''' + IFSLINK + gRepoZip + ''')');
 
-           // Use *buildonly if ZIP already exists.
+           // Use *buildonly if folder already exists
            When (pFetchOption = '*BUILDONLY');
              Print('Not downloading ZIP (*BUILDONLY)');
 
@@ -229,6 +231,7 @@
          ENDIF;
 
          BUILD_AddVar('&DIR/':IFSLINK);
+         BUILD_AddVar('&DIR\':IFSLINK);
 
          //Process the build file
          gBuildFile.PathFile = IFSLINK + 'build.txt' + x'00';
@@ -239,6 +242,8 @@
          If (gBuildFile.FilePtr = *null);
            Print('Failed to read build file.');
            Return *Off;
+         Else;
+           gLine = 0;
          EndIf;
 
          //When lComment = *On, ignore line
@@ -247,7 +252,7 @@
          dow  (ReadFile(%addr(gBuildFile.RtvData)
                        :%Len(gBuildFile.RtvData)
                        :gBuildFile.FilePtr) <> *null);
-
+           gLine += 1;
            gBuildFile.RtvData = %Trim(gBuildFile.RtvData);
            If (%Subst(gBuildFile.RtvData:1:1) = x'25');
              Iter;
@@ -391,14 +396,15 @@
                gFails += 1;
                Print(*Blank);
                Print('ERROR: ');
-               Print('> ' + %TrimR(pCmd));
-               Print('> ' + errmsgid);
+               Print(' > ' + %TrimR(pCmd));
+               Print(' > ' + errmsgid);
+               Print(' > Build file line: ' + %Char(gLine));
                Print(*Blank);
              Endif;
 
            Else;
 
-             Print(%TrimR(%Subst(pCmd:1:24)) + ' ... successful.');
+             Print(%TrimR(%Subst(pCmd:1:36)) + ' ... successful.');
 
            ENDIF;
          On-Error *All;
@@ -444,4 +450,4 @@
 
        Dcl-Proc LOG_Close;
          Close QsysPrt;
-       End-Proc;
+       End-Proc; 
