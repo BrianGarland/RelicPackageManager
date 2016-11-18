@@ -32,7 +32,7 @@
          *n pointer value;  //Misc pointer
        end-pr;
 
-       Dcl-C CMD_LEN 300;
+       Dcl-C CMD_LEN 2200;
 
        Dcl-Ds File_Temp Qualified Template;
          PathFile char(CMD_LEN);
