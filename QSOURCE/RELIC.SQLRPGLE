@@ -194,11 +194,13 @@
        Dcl-Proc BUILD_Prepare;
          Dcl-Pi *N Ind End-Pi;
 
-         Dcl-S lBuild   Varchar(CMD_LEN);
-         Dcl-S lComment Ind;
-         Dcl-S lComTxt  Char(2);
-         Dcl-S lMonMsg  Int(3);
-         Dcl-S lVarInd  Int(5);
+         Dcl-S lBuild    Varchar(CMD_LEN);
+         Dcl-S lComment  Ind;
+         Dcl-S lContinue Ind;
+         Dcl-S lComTxt   Char(2);
+         Dcl-S lMonMsg   Int(3);
+         Dcl-S lVarInd   Int(5);
+         Dcl-S lLength   Int(5);
 
          gPackage.Name = %Trim(pNewDir);
          gPackage.Ver  = '1';
@@ -247,7 +249,9 @@
          EndIf;
 
          //When lComment = *On, ignore line
-         lComment = *Off;
+         lContinue = *Off;
+         lComment  = *Off;
+         lBuild    = '';
 
          dow  (ReadFile(%addr(gBuildFile.RtvData)
                        :%Len(gBuildFile.RtvData)
@@ -262,30 +266,41 @@
            gBuildFile.RtvData = %xlate(x'25':' ':gBuildFile.RtvData);//Line feed (LF)
            gBuildFile.RtvData = %xlate(x'0D':' ':gBuildFile.RtvData);//Carriage return (CR)
            gBuildFile.RtvData = %xlate(x'05':' ':gBuildFile.RtvData);//Tab
-           lBuild = %Trim(gBuildFile.RtvData);
-           gBuildFile.RtvData = *Blank;
 
-           If (lBuild = *Blank);
+           If (gBuildFile.RtvData = *Blank);
              Iter;
+           Else;
+             lBuild += %Trim(gBuildFile.RtvData);
+             lLength = %Len(lBuild);
+             gBuildFile.RtvData = *Blank;
            ENDIF;
 
-           If (%Len(lBuild) > 2);
+           lContinue = (%Subst(lBuild:lLength:1) = '\');
+           If (lContinue);
+             //Remove that slash
+             %Subst(lBuild:lLength:1) = ' ';
+           ENDIF;
+
+           If (%Len(lBuild) >= 2);
              lComTxt = %Subst(lBuild:1:2);
              Select;
                When (lComTxt = '//');
+                 lBuild = '';
                  Iter;
                When (lComtxt = '/*');
                  lComment = *On;
              ENDSL;
 
-             lComTxt = %Subst(lBuild:%Len(lBuild)-1:2);
+             lComTxt = %Subst(lBuild:lLength-1:2);
              If (lComTxt = '*/');
                lComment = *Off;
+               lBuild = '';
                Iter;
              ENDIF;
            ENDIF;
 
            If (lComment = *On);
+             lBuild = '';
              Iter;
            ENDIF;
 
@@ -347,13 +362,18 @@
                    Endif;
 
                  When (gMode = '*BUILD');
-                   BUILD_Command(lBuild);
+                   If (NOT lContinue);
+                     BUILD_Command(lBuild);
+                   ENDIF;
 
                ENDSL;
 
            ENDSL;
 
-           gBuildFile.RtvData = ' ';
+           If (NOT lContinue);
+             //Is no longer a continued field, so we blank it
+             lBuild = '';
+           ENDIF;
          enddo;
 
          CloseFile(gBuildFile.FilePtr);
@@ -450,4 +470,4 @@
 
        Dcl-Proc LOG_Close;
          Close QsysPrt;
-       End-Proc; 
+       End-Proc;
