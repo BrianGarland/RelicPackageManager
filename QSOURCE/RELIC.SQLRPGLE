@@ -32,7 +32,7 @@
          *n pointer value;  //Misc pointer
        end-pr;
 
-       Dcl-C CMD_LEN 300;
+       Dcl-C CMD_LEN 2200;
 
        Dcl-Ds File_Temp Qualified Template;
          PathFile char(CMD_LEN);
@@ -59,6 +59,8 @@
 
        Dcl-S gSPLL  Ind;      //*On if output to streamfile
        Dcl-S gMode  Char(10); //Used for scanning build file
+
+       Dcl-S gLine  Int(5); //Current build file line
        Dcl-S gFails Int(3);
 
        Dcl-Ds Vars_Template Template;
@@ -192,11 +194,13 @@
        Dcl-Proc BUILD_Prepare;
          Dcl-Pi *N Ind End-Pi;
 
-         Dcl-S lBuild   Varchar(CMD_LEN);
-         Dcl-S lComment Ind;
-         Dcl-S lComTxt  Char(2);
-         Dcl-S lMonMsg  Int(3);
-         Dcl-S lVarInd  Int(5);
+         Dcl-S lBuild    Varchar(CMD_LEN);
+         Dcl-S lComment  Ind;
+         Dcl-S lContinue Ind;
+         Dcl-S lComTxt   Char(2);
+         Dcl-S lMonMsg   Int(3);
+         Dcl-S lVarInd   Int(5);
+         Dcl-S lLength   Int(5);
 
          gPackage.Name = %Trim(pNewDir);
          gPackage.Ver  = '1';
@@ -217,7 +221,7 @@
              BUILD_Command('QSH CMD(''jar xf ' + IFSLINK + gRepoZip + ''')');
              BUILD_Command('RMVLNK OBJLNK(''' + IFSLINK + gRepoZip + ''')');
 
-           // Use *buildonly if ZIP already exists.
+           // Use *buildonly if folder already exists
            When (pFetchOption = '*BUILDONLY');
              Print('Not downloading ZIP (*BUILDONLY)');
 
@@ -229,6 +233,7 @@
          ENDIF;
 
          BUILD_AddVar('&DIR/':IFSLINK);
+         BUILD_AddVar('&DIR\':IFSLINK);
 
          //Process the build file
          gBuildFile.PathFile = IFSLINK + 'build.txt' + x'00';
@@ -239,15 +244,19 @@
          If (gBuildFile.FilePtr = *null);
            Print('Failed to read build file.');
            Return *Off;
+         Else;
+           gLine = 0;
          EndIf;
 
          //When lComment = *On, ignore line
-         lComment = *Off;
+         lContinue = *Off;
+         lComment  = *Off;
+         lBuild    = '';
 
          dow  (ReadFile(%addr(gBuildFile.RtvData)
                        :%Len(gBuildFile.RtvData)
                        :gBuildFile.FilePtr) <> *null);
-
+           gLine += 1;
            gBuildFile.RtvData = %Trim(gBuildFile.RtvData);
            If (%Subst(gBuildFile.RtvData:1:1) = x'25');
              Iter;
@@ -257,30 +266,41 @@
            gBuildFile.RtvData = %xlate(x'25':' ':gBuildFile.RtvData);//Line feed (LF)
            gBuildFile.RtvData = %xlate(x'0D':' ':gBuildFile.RtvData);//Carriage return (CR)
            gBuildFile.RtvData = %xlate(x'05':' ':gBuildFile.RtvData);//Tab
-           lBuild = %Trim(gBuildFile.RtvData);
-           gBuildFile.RtvData = *Blank;
 
-           If (lBuild = *Blank);
+           If (gBuildFile.RtvData = *Blank);
              Iter;
+           Else;
+             lBuild += %Trim(gBuildFile.RtvData);
+             lLength = %Len(lBuild);
+             gBuildFile.RtvData = *Blank;
            ENDIF;
 
-           If (%Len(lBuild) > 2);
+           lContinue = (%Subst(lBuild:lLength:1) = '\');
+           If (lContinue);
+             //Remove that slash
+             %Subst(lBuild:lLength:1) = ' ';
+           ENDIF;
+
+           If (%Len(lBuild) >= 2);
              lComTxt = %Subst(lBuild:1:2);
              Select;
                When (lComTxt = '//');
+                 lBuild = '';
                  Iter;
                When (lComtxt = '/*');
                  lComment = *On;
              ENDSL;
 
-             lComTxt = %Subst(lBuild:%Len(lBuild)-1:2);
+             lComTxt = %Subst(lBuild:lLength-1:2);
              If (lComTxt = '*/');
                lComment = *Off;
+               lBuild = '';
                Iter;
              ENDIF;
            ENDIF;
 
            If (lComment = *On);
+             lBuild = '';
              Iter;
            ENDIF;
 
@@ -342,13 +362,18 @@
                    Endif;
 
                  When (gMode = '*BUILD');
-                   BUILD_Command(lBuild);
+                   If (NOT lContinue);
+                     BUILD_Command(lBuild);
+                   ENDIF;
 
                ENDSL;
 
            ENDSL;
 
-           gBuildFile.RtvData = ' ';
+           If (NOT lContinue);
+             //Is no longer a continued field, so we blank it
+             lBuild = '';
+           ENDIF;
          enddo;
 
          CloseFile(gBuildFile.FilePtr);
@@ -391,14 +416,15 @@
                gFails += 1;
                Print(*Blank);
                Print('ERROR: ');
-               Print('> ' + %TrimR(pCmd));
-               Print('> ' + errmsgid);
+               Print(' > ' + %TrimR(pCmd));
+               Print(' > ' + errmsgid);
+               Print(' > Build file line: ' + %Char(gLine));
                Print(*Blank);
              Endif;
 
            Else;
 
-             Print(%TrimR(%Subst(pCmd:1:24)) + ' ... successful.');
+             Print(%TrimR(%Subst(pCmd:1:36)) + ' ... successful.');
 
            ENDIF;
          On-Error *All;
