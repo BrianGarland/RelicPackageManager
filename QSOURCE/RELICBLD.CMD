@@ -1,4 +1,4 @@
              /* Build this over BUILD *PGM */
 
              CMD        Prompt('Relic Package Build')
-             PARM       KWD(PNAME) TYPE(*CHAR) LEN(10)  PROMPT('Into *LIB') ALWUNPRT(*NO)
+             PARM       KWD(LIB) TYPE(*CHAR) LEN(10)  PROMPT('Into *LIB') ALWUNPRT(*NO)
