@@ -103,7 +103,7 @@
 
            //Use the new folder incase it extracts into a folder
            If (pNewDir <> *Blank);
-             Cmd('CHGCURDIR DIR(''' + pNewDir + ''')');
+             Cmd('CHGCURDIR DIR(''' + %Trim(pNewDir) + ''')');
            ENDIF;
 
            RelicBuild(pLib);

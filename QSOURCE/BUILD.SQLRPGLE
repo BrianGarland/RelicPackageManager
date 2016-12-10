@@ -54,8 +54,8 @@
        End-Ds;
 
        Dcl-Ds gPackage Qualified;
-         Name   Varchar(32);
-         Ver    Varchar(10);
+         Name   Varchar(32) Inz('');
+         Ver    Varchar(10) Inz('');
          MonMsg Like(errmsgid)        Dim(48);
          Vars   LikeDS(Vars_Template) Dim(20);
        End-Ds;
@@ -77,7 +77,7 @@
 
        BUILD_Prepare();
 
-       Print('Built ' + gPackage.Name + ' with ' + %Char(gFails) + 'error(s)');
+       Print('Built ' + gPackage.Name + ' with ' + %Char(gFails) + ' error(s)');
 
        *InLR = *On;
        Return;
