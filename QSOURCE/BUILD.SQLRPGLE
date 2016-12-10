@@ -70,10 +70,14 @@
          Print('Library cannot be blank.');
        ENDIF;
 
+       Print('Build process starting.');
+
        BUILD_AddVar('&INTOLIB':%Trim(pLIB));
        BUILD_AddVar('&USER':%TrimR(gUser));
 
        BUILD_Prepare();
+
+       Print('Built ' + gPackage.Name + ' with ' + %Char(gFails) + 'error(s)');
 
        *InLR = *On;
        Return;
