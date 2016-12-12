@@ -21,23 +21,32 @@
 
        //*********************************************
 
-       Dcl-C gRepoZip  'REPO.ZIP';
+       Dcl-C gRepoZip 'REPO.ZIP';
+       Dcl-C gWebList 'http://spaces.litmis.com:62178/pkg/';
 
        Dcl-s INTOLIB   Char(10);
 
        //*********************************************
 
        Dcl-Pi RELIC;
-         pZIPLoc      Char(128) Const;
-         pNewDir      Char(128) Const;
+         pZIPLocI     Char(128) Const;
+         pNewDirI     Char(128) Const;
          pLib         Char(10)  Const;
        END-PI;
+
+       Dcl-Ds gParameters;
+         pZIPLoc      Char(128) Pos(1);
+         pNewDir      Char(128) Pos(129);
+       END-DS;
 
        *InLR = *On;
 
        If (%Parms < 3);
-         Print('Five parameters required.');
+         Print('Three parameters required.');
          Return;
+       Else;
+         pZIPLoc = %Trim(pZIPLocI);
+         pNewDir = %Trim(pNewDirI);
        ENDIF;
 
        If (pLib = *Blank);
@@ -49,6 +58,9 @@
 
        INTOLIB  = pLib;
 
+       Print('Starting package download..');
+
+       BUILD_FromWeb();
        BUILD_Prepare();
 
        Return;
@@ -91,10 +103,29 @@
 
        //*********************************************
 
+       Dcl-Proc BUILD_FromWeb;
+         Dcl-S lWebResponse SQLTYPE(CLOB:256);
+         Dcl-S lURL         Char(128);
+
+         If (%Subst(pZIPLoc:1:4) <> 'http');
+           lURL = gWebList + pZIPLoc;
+
+           Exec SQL SET :lWebResponse = SYSTOOLS.HTTPGETCLOB
+              (:lURL,'');
+
+           If (lWebResponse_Data <> 'NOEXIST');
+             gParameters = lWebResponse_Data;
+           Else;
+             Print('Failed to find ' + %Trim(pZIPLoc) + ' package.');
+           Endif;
+         ENDIF;
+
+       END-PROC;
+
+       //*********************************************
+
        Dcl-Proc BUILD_Prepare;
          Dcl-Pi *N End-Pi;
-
-         Print('Starting package download.');
 
          If (FILE_Download(pZIPLoc));
 
@@ -113,3 +144,4 @@
          Endif;
        End-Proc;
 
+       //*********************************************
