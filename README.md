@@ -5,6 +5,10 @@
 ### What is Relic? (RPM)
 Relic Package Manager is a build tool that builds public and private ILE packages on your IBM i system. This allows developers to make their tools open-source and let Relic build them on other peoples systems. Relic is a community run project and hopefully ideas for Relic come out of the IBM i community. Relic makes use of current technologies such as DB2 services to access the internet.
 
+In short it allows you to download the source of a package and execute the build script to end up with a final product. This in turn allows developers to host open source projects on GitHub or BitBucket for easy distribution.
+
+As of 0.1, you are able to use the build tool without the package manager. You only have to use the package manager to download content off the web.
+
 ### Installtion
 Read the [installation guide here](https://github.com/OSSILE/RelicPackageManager/wiki/First-time-installation).
 
