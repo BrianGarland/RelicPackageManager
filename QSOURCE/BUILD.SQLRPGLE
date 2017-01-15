@@ -60,6 +60,8 @@
          Vars   LikeDS(Vars_Template) Dim(20);
        End-Ds;
 
+       Dcl-S gIfBlock Ind Inz(*On);
+
        //*********************************************
 
        Dcl-Pi BUILD;
@@ -171,7 +173,7 @@
 
            Select;
 
-             When (%Subst(lBuild:1:1) = '&');
+             When (%Subst(lBuild:1:1) = '&' AND gIfBlock);
                lVarInd = %Scan(':':lBuild);
                If (lVarInd > 0);
                  Monitor;
@@ -227,7 +229,12 @@
                    Endif;
 
                  When (gMode = '*BUILD');
-                   BUILD_Command(lBuild);
+
+                   If (BUILD_HandleStatement(lBuild));
+                     If (gIfBlock);
+                       BUILD_Command(lBuild);
+                     Endif;
+                   Endif;
 
                ENDSL;
 
@@ -239,6 +246,68 @@
 
          Return *On;
        End-Proc;
+
+       //*********************************************
+       // Returns *On if command should run
+       // False otherwise
+
+       Dcl-Proc BUILD_HandleStatement;
+         Dcl-Pi *N Ind;
+           pCmd Varchar(CMD_LEN);
+         END-PI;
+
+         Dcl-S lResult Ind;
+         Dcl-S lCur    Int(5) Inz(1);
+         Dcl-S lIndex  Int(3) Inz(1);
+         Dcl-S lParms  Varchar(100) Dim(4);
+         Dcl-S lChar   Char(1);
+         Dcl-S lSpeech Ind Inz(*Off);
+
+         For lCur = 1 to %Len(pCmd);
+           If (lIndex > %Elem(lParms));
+             Leave;
+           ENDIF;
+
+           lChar = %Subst(pCmd:lCur:1);
+           Select;
+             When (lChar = ' ');
+               If (lSpeech);
+                 lParms(lIndex) += lChar;
+               Else;
+                 lIndex += 1;
+               ENDIF;
+
+             When (lChar = '"');
+               lSpeech = NOT lSpeech;
+
+             Other;
+               lParms(lIndex) += lChar;
+           ENDSL;
+         ENDFOR;
+
+         lResult = *Off;
+         Select;
+           When (lParms(1) = 'ifeq');
+             gIfBlock = (lParms(2) = lParms(3));
+           When (lParms(1) = 'ifneq');
+             gIfBlock = (lParms(2) = lParms(3));
+           When (lParms(1) = 'ifdef');
+             gIfBlock = (%Lookup(lParms(2):gPackage.Vars(*).Key) > 0);
+           When (lParms(1) = 'ifndef');
+             gIfBlock = (%Lookup(lParms(2):gPackage.Vars(*).Key) = 0);
+
+           When (lParms(1) = 'else');
+             gIfBlock = NOT gIfBlock;
+           When (lParms(1) = 'end');
+             gIfBlock = *On;
+
+           Other;
+             lResult = *On;
+
+         ENDSL;
+
+         Return lResult;
+       END-PROC;
 
        //*********************************************
 
