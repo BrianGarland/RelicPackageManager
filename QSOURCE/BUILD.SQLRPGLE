@@ -100,7 +100,6 @@
 
          Dcl-S lBuild    Varchar(CMD_LEN);
          Dcl-S lComment  Ind;
-         Dcl-S lContinue Ind;
          Dcl-S lComTxt   Char(2);
          Dcl-S lMonMsg   Int(3);
          Dcl-S lVarInd   Int(5);
@@ -124,7 +123,6 @@
          EndIf;
 
          //When lComment = *On, ignore line
-         lContinue = *Off;
          lComment  = *Off;
          lBuild    = '';
 
@@ -145,22 +143,15 @@
            If (gBuildFile.RtvData = *Blank);
              Iter;
            Else;
-             lBuild += %Trim(gBuildFile.RtvData);
+             lBuild = %Trim(gBuildFile.RtvData);
              lLength = %Len(lBuild);
              gBuildFile.RtvData = *Blank;
-           ENDIF;
-
-           lContinue = (%Subst(lBuild:lLength:1) = '\');
-           If (lContinue);
-             //Remove that slash
-             %Subst(lBuild:lLength:1) = ' ';
            ENDIF;
 
            If (%Len(lBuild) >= 2);
              lComTxt = %Subst(lBuild:1:2);
              Select;
                When (lComTxt = '//');
-                 lBuild = '';
                  Iter;
                When (lComtxt = '/*');
                  lComment = *On;
@@ -169,7 +160,6 @@
              lComTxt = %Subst(lBuild:lLength-1:2);
              If (lComTxt = '*/');
                lComment = *Off;
-               lBuild = '';
                Iter;
              ENDIF;
            ENDIF;
@@ -237,18 +227,12 @@
                    Endif;
 
                  When (gMode = '*BUILD');
-                   If (NOT lContinue);
-                     BUILD_Command(lBuild);
-                   ENDIF;
+                   BUILD_Command(lBuild);
 
                ENDSL;
 
            ENDSL;
 
-           If (NOT lContinue);
-             //Is no longer a continued field, so we blank it
-             lBuild = '';
-           ENDIF;
          enddo;
 
          CloseFile(gBuildFile.FilePtr);
