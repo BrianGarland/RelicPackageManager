@@ -45,6 +45,7 @@
 
        Dcl-S gUser  Char(10) Inz(*USER);
        Dcl-S gMode  Char(10); //Used for scanning build file
+       Dcl-S gLib   Char(10);
 
        Dcl-S gLine  Int(5); //Current build file line
        Dcl-S gFails Int(3);
@@ -68,14 +69,19 @@
        Dcl-Pi BUILD;
          pLib Char(10);
        END-PI;
-
-       If (pLib = *Blank);
-         Print('Library cannot be blank.');
+       
+       gLib = pLib;
+       If (gLib = *Blank);
+         Print('Library not provided. Defaulting to #RELIC.');
+         
+         gPackage.MonMsg(1) = 'CPF2111';
+         gLib = '#RELIC';
+         BUILD_Command('CRTLIB ' + gLib);
        ENDIF;
 
        Print('Build process starting.');
 
-       BUILD_AddVar('&INTOLIB':%Trim(pLIB));
+       BUILD_AddVar('&INTOLIB':%Trim(gLib));
        BUILD_AddVar('&USER':%TrimR(gUser));
 
        BUILD_Prepare();
