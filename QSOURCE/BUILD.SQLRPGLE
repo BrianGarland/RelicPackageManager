@@ -30,6 +30,7 @@
        end-pr;
 
        Dcl-C CMD_LEN 2200;
+       Dcl-C VAR_LEN 512;
 
        Dcl-Ds File_Temp Qualified Template;
          PathFile char(CMD_LEN);
@@ -50,7 +51,7 @@
 
        Dcl-Ds Vars_Template Template;
          Key   Char(10);
-         Value Varchar(125);
+         Value Pointer Inz(*Null);
        End-Ds;
 
        Dcl-Ds gPackage Qualified;
@@ -78,8 +79,8 @@
        BUILD_AddVar('&USER':%TrimR(gUser));
 
        BUILD_Prepare();
-
-       Print('Built ' + gPackage.Name + ' with ' + %Char(gFails) + ' error(s)');
+       
+       BUILD_End();
 
        *InLR = *On;
        Return;
@@ -329,7 +330,7 @@
 
              //Replace the key with the value
              pCmd = %ScanRpl(lKey
-                            :gPackage.Vars(lIndex).Value
+                            :%Str(gPackage.Vars(lIndex).Value)
                             :pCmd);
 
            Endif;
@@ -369,21 +370,54 @@
 
        Dcl-Proc BUILD_AddVar;
          Dcl-Pi *N;
-           pKey   Char(10)     Const;
-           pValue Varchar(128) Const;
+           pKey   Char(10)         Const;
+           pValue Varchar(VAR_LEN) Value;
          End-Pi;
 
          Dcl-S lIndex Int(3);
+         Dcl-S lLen   Int(5);
 
          lIndex = %Lookup(pKey:gPackage.Vars(*).Key);
          If (lIndex = 0);
            lIndex = %Lookup(*Blank:gPackage.Vars(*).Key);
          Endif;
+         
+         pValue = %Trim(pValue);
+         lLen = %Len(pValue) + 1;
 
          If (lIndex > 0);
            gPackage.Vars(lIndex).Key   = pKey;
-           gPackage.Vars(lIndex).Value = %Trim(pValue);
+           
+           If (gPackage.Vars(lIndex).Value = *Null);
+             gPackage.Vars(lIndex).Value = %Alloc(lLen);
+           Else;
+             gPackage.Vars(lIndex).Value = 
+                %Realloc(gPackage.Vars(lIndex).Value:lLen);
+           Endif;
+           %Str(gPackage.Vars(lIndex).Value:lLen) = %Trim(pValue);
          Else;
            Print('Failed to register "' + %Trim(pKey) + '"');
          Endif;
+       End-Proc;
+
+       //*********************************************
+       
+       Dcl-Proc BUILD_End;
+         Dcl-S lLen   Int(3);
+         Dcl-S lIndex Int(3);
+         Dcl-S lPtr   Pointer;
+         
+         Print('Built ' + gPackage.Name + ' with '
+                + %Char(gFails) + ' error(s)');
+         
+         lLen = %Lookup(*Blank:gPackage.Vars(*).Key);
+         If (lLen = 0);
+           lLen = %Elem(gPackage.Vars);
+         Endif;
+         
+         For lIndex = 1 to lLen;
+           //Dealloc(NE) gPackage.Vars(lIndex).Value;
+           lPtr = gPackage.Vars(lIndex).Value;
+           Dealloc(NE) lPtr;
+         Endfor;
        End-Proc;
