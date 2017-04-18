@@ -6,10 +6,14 @@
        dcl-pr Cmd int(10) extproc('system');
          cmdstring pointer value options(*string);
        end-pr;
-       Dcl-s errmsgid char(7)        import('_EXCP_MSGID');
+       Dcl-s errmsgid char(7) import('_EXCP_MSGID');
 
        Dcl-Pr printf Int(10) ExtProc('printf');
          format Pointer Value Options(*String);
+       END-PR;
+       
+       Dcl-Pr GetEnv Pointer ExtProc('getenv');
+         envvar Pointer Value Options(*String);
        END-PR;
 
        //*********************************************
@@ -80,10 +84,10 @@
        ENDIF;
 
        Print('Build process starting.');
-
+       
        BUILD_AddVar('&INTOLIB':%Trim(gLib));
        BUILD_AddVar('&USER':%TrimR(gUser));
-
+       
        BUILD_Prepare();
        
        BUILD_End();
@@ -102,7 +106,7 @@
          printf(%Trim(pValue));
        End-Proc;
 
-              //*********************************************
+       //*********************************************
 
        Dcl-Proc BUILD_Prepare;
          Dcl-Pi *N Ind End-Pi;
@@ -404,10 +408,18 @@
          Endif;
          
          pValue = %Trim(pValue);
+         
+         If (%Len(pValue) > 0);
+           If (%Subst(pValue:1:1) = '*');
+             pValue = %Subst(pValue:2);
+             pValue = %Str(GetEnv(pValue));
+           Endif;
+         Endif;
+         
          lLen = %Len(pValue) + 1;
 
          If (lIndex > 0);
-           gPackage.Vars(lIndex).Key   = pKey;
+           gPackage.Vars(lIndex).Key = pKey;
            
            If (gPackage.Vars(lIndex).Value = *Null);
              gPackage.Vars(lIndex).Value = %Alloc(lLen);
