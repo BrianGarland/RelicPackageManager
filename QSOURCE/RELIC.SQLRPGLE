@@ -5,7 +5,7 @@
        //   - DWNPKG
 
        Ctl-Opt DftActGrp(*No) ActGrp(*NEW);
-
+       //hello
        dcl-pr Cmd int(10) extproc('system');
          cmdstring pointer value options(*string);
        end-pr;

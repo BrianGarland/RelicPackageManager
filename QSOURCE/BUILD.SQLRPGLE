@@ -266,7 +266,7 @@
          Dcl-S lResult Ind;
          Dcl-S lCur    Int(5) Inz(1);
          Dcl-S lIndex  Int(3) Inz(1);
-         Dcl-S lParms  Varchar(100) Dim(4);
+         Dcl-S lParms  Varchar(100) Dim(3);
          Dcl-S lChar   Char(1);
          Dcl-S lSpeech Ind Inz(*Off);
 
@@ -295,9 +295,11 @@
          lResult = *Off;
          Select;
            When (lParms(1) = 'ifeq');
+             Exsr fixParms;
              gIfBlock = (lParms(2) = lParms(3));
            When (lParms(1) = 'ifneq');
-             gIfBlock = (lParms(2) = lParms(3));
+             Exsr fixParms;
+             gIfBlock = (lParms(2) <> lParms(3));
            When (lParms(1) = 'ifdef');
              gIfBlock = (%Lookup(lParms(2):gPackage.Vars(*).Key) > 0);
            When (lParms(1) = 'ifndef');
@@ -314,6 +316,19 @@
          ENDSL;
 
          Return lResult;
+         
+         Begsr fixParms;
+           For lCur = 2 to %Elem(lParms);
+             If (%Len(lParms(lCur)) > 0);
+               If (%Subst(lParms(lCur):1:1) = '&');
+                 lIndex = %Lookup(lParms(lCur):gPackage.Vars(*).Key);
+                 If (lIndex > 0);
+                   lParms(lCur) = %Str(gPackage.Vars(lIndex).Value);
+                 Endif;
+               Endif;
+             EndIf;
+           Endfor;
+         Endsr;
        END-PROC;
 
        //*********************************************
