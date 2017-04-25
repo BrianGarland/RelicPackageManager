@@ -3,18 +3,23 @@
 
        //*********************************************
 
-       dcl-pr Cmd int(10) extproc('system');
+       Dcl-Pr Cmd int(10) extproc('system');
          cmdstring pointer value options(*string);
-       end-pr;
+       End-Pr;
        Dcl-s errmsgid char(7) import('_EXCP_MSGID');
 
        Dcl-Pr printf Int(10) ExtProc('printf');
          format Pointer Value Options(*String);
-       END-PR;
+       End-Pr;
        
        Dcl-Pr GetEnv Pointer ExtProc('getenv');
          envvar Pointer Value Options(*String);
        END-PR;
+       
+       Dcl-Pr GetCwd Pointer ExtProc('getcwd');
+         data Pointer Value;
+         size Uns(10) Value;
+       End-Pr;
 
        //*********************************************
 
@@ -117,8 +122,15 @@
          Dcl-S lMonMsg   Int(3);
          Dcl-S lVarInd   Int(5);
          Dcl-S lLength   Int(5);
-
+         
+         Dcl-S lCurDir   Pointer;
+         
          //Will use current directory
+         lCurDir = %Alloc(257);
+         GetCwd(lCurDir:256);
+         BUILD_AddVar('&CD':%Str(lCurDir));
+         Dealloc(NE) lCurDir;
+
          BUILD_AddVar('&DIR/':'');
          BUILD_AddVar('&DIR\':'');
 
@@ -196,21 +208,11 @@
                  Endmon;
                Endif;
 
-             When (lBuild = 'dirs:');
-               Print('Directories directive not supported in build file.');
-
-             When (lBuild = 'files:');
-               Print('Files directive not supported in build file.');
-
              When (lBuild = 'name:');
                gMode = '*NAME';
 
              When (lBuild = 'version:');
                gMode = '*VER';
-
-             when (lBuild = 'licenses:');
-               Print('License mode currently not supported.');
-               gMode = '*LIC';
 
              When (lBuild = 'monmsg:');
                gMode = '*MONMSG';
@@ -343,23 +345,14 @@
          END-PI;
 
          Dcl-S lIndex Int(3);
-         Dcl-S lKey   Varchar(10);
 
-         For lIndex = 1 to %Lookup(*Blank:gPackage.Vars(*).Key) - 1;
-
-           //Trim it down
-           lKey = %TrimR(gPackage.Vars(lIndex).Key);
-
-           //If the command contains a defined variable
-           If (%Scan(lKey:pCmd) > 0);
-
-             //Replace the key with the value
-             pCmd = %ScanRpl(lKey
-                            :%Str(gPackage.Vars(lIndex).Value)
-                            :pCmd);
-
-           Endif;
-         Endfor;
+         pCmd = BUILD_ReplVars(pCmd);
+         
+         If (%Subst(pCmd:1:4) = 'QSH:');
+           pCmd = %Subst(pCmd:5);
+           pCmd = %ScanRpl('''':'''''':pCmd);
+           pCmd = 'QSH CMD(''' + %TrimR(pCmd) + ''')';
+         Endif;
 
          Monitor;
            If (Cmd(pCmd) = 1);
@@ -401,7 +394,10 @@
 
          Dcl-S lIndex Int(3);
          Dcl-S lLen   Int(5);
+         Dcl-S lKey   Char(10);
 
+         pValue = BUILD_ReplVars(pValue);
+         
          lIndex = %Lookup(pKey:gPackage.Vars(*).Key);
          If (lIndex = 0);
            lIndex = %Lookup(*Blank:gPackage.Vars(*).Key);
@@ -453,4 +449,27 @@
            lPtr = gPackage.Vars(lIndex).Value;
            Dealloc(NE) lPtr;
          Endfor;
+       End-Proc;
+       
+       Dcl-Proc BUILD_ReplVars;
+         Dcl-Pi *N Varchar(CMD_LEN);
+           pInput Varchar(CMD_LEN) Value;
+         End-Pi;
+         
+         Dcl-S lIndex Int(3);
+         Dcl-S lKey   Varchar(10);
+         
+         For lIndex = 1 to %Lookup(*Blank:gPackage.Vars(*).Key) - 1;
+           //Trim it down
+           lKey = %TrimR(gPackage.Vars(lIndex).Key);
+           //If the command contains a defined variable
+           If (%Scan(lKey:pInput) > 0);
+             //Replace the key with the value
+             pInput = %ScanRpl(lKey
+                              :%Str(gPackage.Vars(lIndex).Value)
+                              :pInput);
+           Endif;
+         Endfor;
+         
+         Return pInput;
        End-Proc;
