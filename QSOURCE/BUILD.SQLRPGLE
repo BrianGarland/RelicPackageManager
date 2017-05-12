@@ -2,41 +2,9 @@
        Ctl-Opt DftActGrp(*No) ActGrp(*NEW);
 
        //*********************************************
-
-       Dcl-Pr Cmd int(10) extproc('system');
-         cmdstring pointer value options(*string);
-       End-Pr;
+      /COPY 'QSOURCE/bldhdr.rpgle'
+       
        Dcl-s errmsgid char(7) import('_EXCP_MSGID');
-
-       Dcl-Pr printf Int(10) ExtProc('printf');
-         format Pointer Value Options(*String);
-       End-Pr;
-       
-       Dcl-Pr GetEnv Pointer ExtProc('getenv');
-         envvar Pointer Value Options(*String);
-       END-PR;
-       
-       Dcl-Pr GetCwd Pointer ExtProc('getcwd');
-         data Pointer Value;
-         size Uns(10) Value;
-       End-Pr;
-
-       //*********************************************
-
-       dcl-pr OpenFile pointer extproc('_C_IFS_fopen');
-         *n pointer value;  //File name
-         *n pointer value;  //File mode
-       end-pr;
-
-       dcl-pr ReadFile pointer extproc('_C_IFS_fgets');
-         *n pointer value;  //Retrieved data
-         *n int(10) value;  //Data size
-         *n pointer value;  //Misc pointer
-       end-pr;
-
-       dcl-pr CloseFile extproc('_C_IFS_fclose');
-         *n pointer value;  //Misc pointer
-       end-pr;
 
        Dcl-C CMD_LEN 2200;
        Dcl-C VAR_LEN 512;
@@ -49,6 +17,7 @@
        End-ds;
 
        Dcl-Ds gBuildFile  LikeDS(File_Temp);
+       Dcl-Ds gLogFile    LikeDS(File_Temp);
 
        //*********************************************
 
@@ -78,14 +47,13 @@
        Dcl-Pi BUILD;
          pLib Char(10);
        END-PI;
+
+       LOG_Prepare();
        
        gLib = pLib;
        If (gLib = *Blank);
-         Print('Library not provided. Defaulting to #RELIC.');
-         
-         gPackage.MonMsg(1) = 'CPF2111';
+         Print('Library not provided. Defaulting to QGPL.');
          gLib = '#RELIC';
-         BUILD_Command('CRTLIB ' + gLib);
        ENDIF;
 
        Print('Build process starting.');
@@ -96,6 +64,7 @@
        BUILD_Prepare();
        
        BUILD_End();
+       LOG_Close();
 
        *InLR = *On;
        Return;
@@ -109,6 +78,11 @@
 
          pValue = %TrimR(pValue) + x'25';
          printf(%Trim(pValue));
+         
+         WriteFile(%Addr(pValue)
+                  :%Len(%TrimR(pValue))
+                  :1
+                  :gLogFile.FilePtr);
        End-Proc;
 
        //*********************************************
@@ -472,4 +446,23 @@
          Endfor;
          
          Return pInput;
+       End-Proc;
+
+       //*********************************************
+       
+       Dcl-Proc LOG_Prepare;
+         Dcl-Pi *N Ind End-Pi;
+         gLogFile.PathFile = 'RELICBLD.log' + x'00';
+         gLogFile.OpenMode = 'w' + x'00';
+         gLogFile.FilePtr  = OpenFile(%addr(gLogFile.PathFile)
+                                     :%addr(gLogFile.OpenMode));
+                                        
+         Return (gLogFile.FilePtr <> *null);
+         //Returns *on if it failed to open
+       End-Proc;
+
+       //*********************************************
+       
+       Dcl-Proc LOG_Close;
+         CloseFile(gLogFile.FilePtr);
        End-Proc;
