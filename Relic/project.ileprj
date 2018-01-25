@@ -1,0 +1,6 @@
+objectname=RELIC
+preprojectbuild=Build
+staticmods=
+sqlcommit=*NONE
+debugview=*SOURCE
+projecttype=PGM

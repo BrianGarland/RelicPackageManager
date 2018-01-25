@@ -1,9 +1,5 @@
 
-       Ctl-Opt DftActGrp(*No) ActGrp(*NEW);
-
-       //*********************************************
-      /COPY 'QSOURCE/bldhdr.rpgle'
-       //Hello LISUG!!!
+      /COPY 'Headers/Build.h'
        
        Dcl-s errmsgid char(7) import('_EXCP_MSGID');
 
