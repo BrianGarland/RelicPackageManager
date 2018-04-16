@@ -2,34 +2,13 @@
        Ctl-Opt DftActGrp(*No) ActGrp(*NEW);
 
        //*********************************************
-
-       dcl-pr Cmd int(10) extproc('system');
-         cmdstring pointer value options(*string);
-       end-pr;
-       Dcl-s errmsgid char(7)        import('_EXCP_MSGID');
-
-       Dcl-Pr printf Int(10) ExtProc('printf');
-         format Pointer Value Options(*String);
-       END-PR;
-
-       //*********************************************
-
-       dcl-pr OpenFile pointer extproc('_C_IFS_fopen');
-         *n pointer value;  //File name
-         *n pointer value;  //File mode
-       end-pr;
-
-       dcl-pr ReadFile pointer extproc('_C_IFS_fgets');
-         *n pointer value;  //Retrieved data
-         *n int(10) value;  //Data size
-         *n pointer value;  //Misc pointer
-       end-pr;
-
-       dcl-pr CloseFile extproc('_C_IFS_fclose');
-         *n pointer value;  //Misc pointer
-       end-pr;
+      /COPY 'QSOURCE/bldhdr.rpgle'
+       //Hello LISUG!!!
+       
+       Dcl-s errmsgid char(7) import('_EXCP_MSGID');
 
        Dcl-C CMD_LEN 2200;
+       Dcl-C VAR_LEN 512;
 
        Dcl-Ds File_Temp Qualified Template;
          PathFile char(CMD_LEN);
@@ -39,18 +18,20 @@
        End-ds;
 
        Dcl-Ds gBuildFile  LikeDS(File_Temp);
+       Dcl-Ds gLogFile    LikeDS(File_Temp);
 
        //*********************************************
 
        Dcl-S gUser  Char(10) Inz(*USER);
        Dcl-S gMode  Char(10); //Used for scanning build file
+       Dcl-S gLib   Char(10);
 
        Dcl-S gLine  Int(5); //Current build file line
        Dcl-S gFails Int(3);
 
        Dcl-Ds Vars_Template Template;
          Key   Char(10);
-         Value Varchar(125);
+         Value Pointer Inz(*Null);
        End-Ds;
 
        Dcl-Ds gPackage Qualified;
@@ -68,18 +49,23 @@
          pLib Char(10);
        END-PI;
 
-       If (pLib = *Blank);
-         Print('Library cannot be blank.');
+       LOG_Prepare();
+       
+       gLib = pLib;
+       If (gLib = *Blank);
+         Print('Library not provided. Defaulting to QGPL.');
+         gLib = '#RELIC';
        ENDIF;
 
        Print('Build process starting.');
-
-       BUILD_AddVar('&INTOLIB':%Trim(pLIB));
+       
+       BUILD_AddVar('&INTOLIB':%Trim(gLib));
        BUILD_AddVar('&USER':%TrimR(gUser));
-
+       
        BUILD_Prepare();
-
-       Print('Built ' + gPackage.Name + ' with ' + %Char(gFails) + ' error(s)');
+       
+       BUILD_End();
+       LOG_Close();
 
        *InLR = *On;
        Return;
@@ -93,9 +79,14 @@
 
          pValue = %TrimR(pValue) + x'25';
          printf(%Trim(pValue));
+         
+         WriteFile(%Addr(pValue)
+                  :%Len(%TrimR(pValue))
+                  :1
+                  :gLogFile.FilePtr);
        End-Proc;
 
-              //*********************************************
+       //*********************************************
 
        Dcl-Proc BUILD_Prepare;
          Dcl-Pi *N Ind End-Pi;
@@ -106,8 +97,15 @@
          Dcl-S lMonMsg   Int(3);
          Dcl-S lVarInd   Int(5);
          Dcl-S lLength   Int(5);
-
+         
+         Dcl-S lCurDir   Pointer;
+         
          //Will use current directory
+         lCurDir = %Alloc(257);
+         GetCwd(lCurDir:256);
+         BUILD_AddVar('&CD':%Str(lCurDir));
+         Dealloc(NE) lCurDir;
+
          BUILD_AddVar('&DIR/':'');
          BUILD_AddVar('&DIR\':'');
 
@@ -185,21 +183,11 @@
                  Endmon;
                Endif;
 
-             When (lBuild = 'dirs:');
-               Print('Directories directive not supported in build file.');
-
-             When (lBuild = 'files:');
-               Print('Files directive not supported in build file.');
-
              When (lBuild = 'name:');
                gMode = '*NAME';
 
              When (lBuild = 'version:');
                gMode = '*VER';
-
-             when (lBuild = 'licenses:');
-               Print('License mode currently not supported.');
-               gMode = '*LIC';
 
              When (lBuild = 'monmsg:');
                gMode = '*MONMSG';
@@ -259,7 +247,7 @@
          Dcl-S lResult Ind;
          Dcl-S lCur    Int(5) Inz(1);
          Dcl-S lIndex  Int(3) Inz(1);
-         Dcl-S lParms  Varchar(100) Dim(4);
+         Dcl-S lParms  Varchar(100) Dim(3);
          Dcl-S lChar   Char(1);
          Dcl-S lSpeech Ind Inz(*Off);
 
@@ -288,9 +276,11 @@
          lResult = *Off;
          Select;
            When (lParms(1) = 'ifeq');
+             Exsr fixParms;
              gIfBlock = (lParms(2) = lParms(3));
            When (lParms(1) = 'ifneq');
-             gIfBlock = (lParms(2) = lParms(3));
+             Exsr fixParms;
+             gIfBlock = (lParms(2) <> lParms(3));
            When (lParms(1) = 'ifdef');
              gIfBlock = (%Lookup(lParms(2):gPackage.Vars(*).Key) > 0);
            When (lParms(1) = 'ifndef');
@@ -307,6 +297,19 @@
          ENDSL;
 
          Return lResult;
+         
+         Begsr fixParms;
+           For lCur = 2 to %Elem(lParms);
+             If (%Len(lParms(lCur)) > 0);
+               If (%Subst(lParms(lCur):1:1) = '&');
+                 lIndex = %Lookup(lParms(lCur):gPackage.Vars(*).Key);
+                 If (lIndex > 0);
+                   lParms(lCur) = %Str(gPackage.Vars(lIndex).Value);
+                 Endif;
+               Endif;
+             EndIf;
+           Endfor;
+         Endsr;
        END-PROC;
 
        //*********************************************
@@ -317,23 +320,14 @@
          END-PI;
 
          Dcl-S lIndex Int(3);
-         Dcl-S lKey   Varchar(10);
 
-         For lIndex = 1 to %Lookup(*Blank:gPackage.Vars(*).Key) - 1;
-
-           //Trim it down
-           lKey = %TrimR(gPackage.Vars(lIndex).Key);
-
-           //If the command contains a defined variable
-           If (%Scan(lKey:pCmd) > 0);
-
-             //Replace the key with the value
-             pCmd = %ScanRpl(lKey
-                            :gPackage.Vars(lIndex).Value
-                            :pCmd);
-
-           Endif;
-         Endfor;
+         pCmd = BUILD_ReplVars(pCmd);
+         
+         If (%Subst(pCmd:1:4) = 'QSH:');
+           pCmd = %Subst(pCmd:5);
+           pCmd = %ScanRpl('''':'''''':pCmd);
+           pCmd = 'QSH CMD(''' + %TrimR(pCmd) + ''')';
+         Endif;
 
          Monitor;
            If (Cmd(pCmd) = 1);
@@ -369,21 +363,107 @@
 
        Dcl-Proc BUILD_AddVar;
          Dcl-Pi *N;
-           pKey   Char(10)     Const;
-           pValue Varchar(128) Const;
+           pKey   Char(10)         Const;
+           pValue Varchar(VAR_LEN) Value;
          End-Pi;
 
          Dcl-S lIndex Int(3);
+         Dcl-S lLen   Int(5);
+         Dcl-S lKey   Char(10);
 
+         pValue = BUILD_ReplVars(pValue);
+         
          lIndex = %Lookup(pKey:gPackage.Vars(*).Key);
          If (lIndex = 0);
            lIndex = %Lookup(*Blank:gPackage.Vars(*).Key);
          Endif;
+         
+         pValue = %Trim(pValue);
+         
+         If (%Len(pValue) > 0);
+           If (%Subst(pValue:1:1) = '*');
+             pValue = %Subst(pValue:2);
+             pValue = %Str(GetEnv(pValue));
+           Endif;
+         Endif;
+         
+         lLen = %Len(pValue) + 1;
 
          If (lIndex > 0);
-           gPackage.Vars(lIndex).Key   = pKey;
-           gPackage.Vars(lIndex).Value = %Trim(pValue);
+           gPackage.Vars(lIndex).Key = pKey;
+           
+           If (gPackage.Vars(lIndex).Value = *Null);
+             gPackage.Vars(lIndex).Value = %Alloc(lLen);
+           Else;
+             gPackage.Vars(lIndex).Value = 
+                %Realloc(gPackage.Vars(lIndex).Value:lLen);
+           Endif;
+           %Str(gPackage.Vars(lIndex).Value:lLen) = %Trim(pValue);
          Else;
            Print('Failed to register "' + %Trim(pKey) + '"');
          Endif;
+       End-Proc;
+
+       //*********************************************
+       
+       Dcl-Proc BUILD_End;
+         Dcl-S lLen   Int(3);
+         Dcl-S lIndex Int(3);
+         Dcl-S lPtr   Pointer;
+         
+         Print('Built ' + gPackage.Name + ' with '
+                + %Char(gFails) + ' error(s)');
+         
+         lLen = %Lookup(*Blank:gPackage.Vars(*).Key);
+         If (lLen = 0);
+           lLen = %Elem(gPackage.Vars);
+         Endif;
+         
+         For lIndex = 1 to lLen;
+           //Dealloc(NE) gPackage.Vars(lIndex).Value;
+           lPtr = gPackage.Vars(lIndex).Value;
+           Dealloc(NE) lPtr;
+         Endfor;
+       End-Proc;
+       
+       Dcl-Proc BUILD_ReplVars;
+         Dcl-Pi *N Varchar(CMD_LEN);
+           pInput Varchar(CMD_LEN) Value;
+         End-Pi;
+         
+         Dcl-S lIndex Int(3);
+         Dcl-S lKey   Varchar(10);
+         
+         For lIndex = 1 to %Lookup(*Blank:gPackage.Vars(*).Key) - 1;
+           //Trim it down
+           lKey = %TrimR(gPackage.Vars(lIndex).Key);
+           //If the command contains a defined variable
+           If (%Scan(lKey:pInput) > 0);
+             //Replace the key with the value
+             pInput = %ScanRpl(lKey
+                              :%Str(gPackage.Vars(lIndex).Value)
+                              :pInput);
+           Endif;
+         Endfor;
+         
+         Return pInput;
+       End-Proc;
+
+       //*********************************************
+       
+       Dcl-Proc LOG_Prepare;
+         Dcl-Pi *N Ind End-Pi;
+         gLogFile.PathFile = 'RELICBLD.log' + x'00';
+         gLogFile.OpenMode = 'w' + x'00';
+         gLogFile.FilePtr  = OpenFile(%addr(gLogFile.PathFile)
+                                     :%addr(gLogFile.OpenMode));
+                                        
+         Return (gLogFile.FilePtr <> *null);
+         //Returns *on if it failed to open
+       End-Proc;
+
+       //*********************************************
+       
+       Dcl-Proc LOG_Close;
+         CloseFile(gLogFile.FilePtr);
        End-Proc;

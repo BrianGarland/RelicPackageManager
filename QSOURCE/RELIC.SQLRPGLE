@@ -5,7 +5,7 @@
        //   - DWNPKG
 
        Ctl-Opt DftActGrp(*No) ActGrp(*NEW);
-
+       //hello
        dcl-pr Cmd int(10) extproc('system');
          cmdstring pointer value options(*string);
        end-pr;
@@ -22,7 +22,7 @@
        //*********************************************
 
        Dcl-C gRepoZip 'REPO.ZIP';
-       Dcl-C gWebList 'http://spaces.litmis.com:62178/pkg/';
+       Dcl-C gWebList 'http://worksofbarry.com/relic/pkg.php?p=';
 
        Dcl-s INTOLIB   Char(10);
 
@@ -113,7 +113,7 @@
            Exec SQL SET :lWebResponse = SYSTOOLS.HTTPGETCLOB
               (:lURL,'');
 
-           If (lWebResponse_Data <> 'NOEXIST');
+           If (lWebResponse_Data <> 'false');
              gParameters = lWebResponse_Data;
            Else;
              Print('Failed to find ' + %Trim(pZIPLoc) + ' package.');
